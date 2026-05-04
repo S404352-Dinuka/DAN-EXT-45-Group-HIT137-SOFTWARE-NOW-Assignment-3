@@ -1,0 +1,17 @@
+"""
+Shared constant values used across the project.
+"""
+
+APP_TITLE = "Spot the Difference Game"
+SUPPORTED_IMAGE_FORMATS = (".jpg", ".jpeg", ".png", ".bmp")
+MIN_IMAGE_WIDTH = 250
+MIN_IMAGE_HEIGHT = 180
+NUMBER_OF_DIFFERENCES = 5
+MAX_MISTAKES = 3
+CLICK_TOLERANCE = 14
+MAX_DISPLAY_WIDTH = 720
+MAX_DISPLAY_HEIGHT = 560
+MIN_DISPLAY_WIDTH = 380
+MIN_DISPLAY_HEIGHT = 280
+FOUND_COLOUR = (0, 0, 255)
+REVEAL_COLOUR = (255, 0, 0)
