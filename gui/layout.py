@@ -51,10 +51,11 @@ class MainLayout:
         self.modified_label = None
         self.build_layout()
 
-    """
-    This method builds the main GUI widgets.
-    """
     def build_layout(self):
+        """
+        This method builds the main GUI widgets.
+        :return:
+        """
         self.root.configure(bg=APP_BACKGROUND_COLOUR)
         main_container = tk.Frame(
             self.root,
@@ -68,13 +69,33 @@ class MainLayout:
         self.create_status_label(main_container)
         self.create_image_section(main_container)
 
-    """
-    This method creates the app title section.
-    """
     def create_header(self, parent_frame):
         """
-        TODO:: Need to implement
+        This method creates the app title section.
+        :param parent_frame:
+        :return:
         """
+        header_frame = tk.Frame(
+            parent_frame,
+            bg=APP_BACKGROUND_COLOUR
+        )
+        header_frame.pack(fill=tk.X, pady=(0, 14))
+        title_label = tk.Label(
+            header_frame,
+            text="Spot the Difference",
+            font=APP_FONT_TITLE,
+            fg=TEXT_COLOUR,
+            bg=APP_BACKGROUND_COLOUR
+        )
+        title_label.pack(anchor="w")
+        subtitle_label = tk.Label(
+            header_frame,
+            text="Find all 5 hidden changes in the modified image.",
+            font=APP_FONT_SUBTITLE,
+            fg=MUTED_TEXT_COLOUR,
+            bg=APP_BACKGROUND_COLOUR
+        )
+        subtitle_label.pack(anchor="w", pady=(3, 0))
 
     """
     This method creates the button and score card section.
