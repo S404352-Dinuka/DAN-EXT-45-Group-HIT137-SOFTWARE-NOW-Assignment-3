@@ -212,13 +212,38 @@ class MainLayout:
         )
         value_label.pack(anchor="w")
 
-    """
-    This method creates a status message area.
-    """
     def create_status_label(self, parent_frame):
         """
-        TODO:: Need to implement
+        This method creates the status message area.
+        :param parent_frame:
+        :return:
         """
+        status_frame = tk.Frame(
+            parent_frame,
+            bg=STATUS_BACKGROUND_COLOUR,
+            highlightbackground=STATUS_BACKGROUND_COLOUR,
+            highlightthickness=1
+        )
+        status_frame.pack(fill=tk.X, pady=(0, 12))
+        accent_bar = tk.Frame(
+            status_frame,
+            bg=STATUS_ACCENT_COLOUR,
+            width=5
+        )
+        accent_bar.pack(side=tk.LEFT, fill=tk.Y)
+        status_label = tk.Label(
+            status_frame,
+            textvariable=self.status_text,
+            font=APP_FONT_STATUS,
+            fg=STATUS_TEXT_COLOUR,
+            bg=STATUS_BACKGROUND_COLOUR,
+            padx=12,
+            pady=9,
+            wraplength=900,
+            justify=tk.LEFT,
+            anchor="w"
+        )
+        status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     """
     This method creates the original and modified image section.
