@@ -1,5 +1,5 @@
 """
-This module contains the Tkinter layout for the Spot the Difference game.
+This builds the visual interface.
 """
 
 import tkinter as tk
@@ -32,14 +32,10 @@ from utils.constants import (
     TEXT_COLOUR,
 )
 
+"""
+This class builds and stores the main GUI widgets.
+"""
 class MainLayout:
-    """
-    This class creates and manages the main Tkinter user interface.
-
-    It builds the header, control panel, status label, and image display
-    sections used by the Spot the Difference game.
-    """
-
     def __init__(self, root, load_command, reveal_command, click_command):
         self.root = root
         self.load_command = load_command
@@ -58,6 +54,7 @@ class MainLayout:
     def build_layout(self):
         """
         This method builds the main GUI widgets.
+        :return:
         """
         self.root.configure(bg=APP_BACKGROUND_COLOUR)
         main_container = tk.Frame(
@@ -74,10 +71,9 @@ class MainLayout:
 
     def create_header(self, parent_frame):
         """
-        This method creates the application header section.
-        It adds the game title and subtitle to the given parent frame.
-
-        :param parent_frame: The frame where the header section will be placed.
+        This method creates the app title section.
+        :param parent_frame:
+        :return:
         """
         header_frame = tk.Frame(
             parent_frame,
@@ -104,9 +100,8 @@ class MainLayout:
     def create_control_panel(self, parent_frame):
         """
         This method creates the main control panel.
-        It adds the image action buttons and the game statistic cards.
-
-        :param parent_frame: The frame where the control panel will be placed.
+        :param parent_frame:
+        :return:
         """
         panel_frame = tk.Frame(
             parent_frame,
@@ -149,14 +144,13 @@ class MainLayout:
 
     def create_button(self, parent_frame, text, command, normal_colour, hover_colour):
         """
-        This method creates a styled button with a hover effect.
-
-        :param parent_frame: The frame where the button will be placed.
-        :param text: The text displayed on the button.
-        :param command: The function that runs when the button is clicked.
-        :param normal_colour: The default background colour of the button.
-        :param hover_colour: The background colour used when the mouse is over the button.
-        :return: A configured Tkinter Button widget.
+        This method creates a clean button
+        :param parent_frame:
+        :param text:
+        :param command:
+        :param normal_colour:
+        :param hover_colour:
+        :return:
         """
         button = tk.Button(
             parent_frame,
@@ -187,11 +181,10 @@ class MainLayout:
     def create_stat_card(self, parent_frame, title, text_variable):
         """
         This method creates a small statistic card.
-        It displays a statistic title and its related value.
-
-        :param parent_frame: The frame where the statistic card will be placed.
-        :param title: The title shown at the top of the card.
-        :param text_variable: The Tkinter StringVar used to display the statistic value.
+        :param parent_frame:
+        :param title:
+        :param text_variable:
+        :return:
         """
         card_frame = tk.Frame(
             parent_frame,
@@ -222,9 +215,8 @@ class MainLayout:
     def create_status_label(self, parent_frame):
         """
         This method creates the status message area.
-        It displays game messages inside a highlighted status bar.
-
-        :param parent_frame: The frame where the status message area will be placed.
+        :param parent_frame:
+        :return:
         """
         status_frame = tk.Frame(
             parent_frame,
@@ -253,78 +245,10 @@ class MainLayout:
         )
         status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
+    """
+    This method creates the original and modified image section.
+    """
     def create_image_section(self, parent_frame):
         """
-        This method creates the image display section.
-        It adds separate cards for the original image and the modified image.
-
-        :param parent_frame: The frame where the image section will be placed.
+        TODO:: Need to implement
         """
-        images_frame = tk.Frame(
-            parent_frame,
-            bg=APP_BACKGROUND_COLOUR
-        )
-        images_frame.pack(fill=tk.BOTH, expand=True)
-        self.original_image_area, self.original_label = self.create_image_card(
-            images_frame,
-            "Original Image",
-            "Original image will appear here"
-        )
-        self.modified_image_area, self.modified_label = self.create_image_card(
-            images_frame,
-            "Modified Image",
-            "Click the image to find differences"
-        )
-        self.modified_label.config(cursor="hand2")
-        self.modified_label.bind("<Button-1>", self.click_command)
-
-    def create_image_card(self, parent_frame, title, placeholder_text):
-        """
-        This method creates an image display card with a title and placeholder label.
-
-        :param parent_frame: The frame where the image card will be placed.
-        :param title: The title shown at the top of the image card.
-        :param placeholder_text: The text displayed before an image is loaded.
-        :return: The image area frame and the image label inside it.
-        """
-        card_frame = tk.Frame(
-            parent_frame,
-            bg=CARD_BACKGROUND_COLOUR,
-            padx=12,
-            pady=12,
-            highlightbackground=BORDER_COLOUR,
-            highlightthickness=1
-        )
-        card_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8)
-        title_label = tk.Label(
-            card_frame,
-            text=title,
-            font=APP_FONT_CARD_TITLE,
-            fg=TEXT_COLOUR,
-            bg=CARD_BACKGROUND_COLOUR
-        )
-        title_label.pack(anchor="w", pady=(0, 8))
-        image_area = tk.Frame(
-            card_frame,
-            bg=IMAGE_PLACEHOLDER_BACKGROUND,
-            width=IMAGE_AREA_MIN_WIDTH,
-            height=IMAGE_AREA_MIN_HEIGHT
-        )
-        image_area.pack(fill=tk.BOTH, expand=True)
-        image_area.pack_propagate(False)
-        image_label = tk.Label(
-            image_area,
-            text=placeholder_text,
-            font=APP_FONT_NORMAL,
-            fg=MUTED_TEXT_COLOUR,
-            bg=IMAGE_PLACEHOLDER_BACKGROUND,
-            bd=0,
-            padx=PLACEHOLDER_PADDING_X,
-            pady=PLACEHOLDER_PADDING_Y,
-            highlightthickness=0,
-            anchor="center",
-            justify=tk.CENTER,
-            wraplength=PLACEHOLDER_WRAP_LENGTH
-        )
-        image_label.pack(expand=True)
-        return image_area, image_label
