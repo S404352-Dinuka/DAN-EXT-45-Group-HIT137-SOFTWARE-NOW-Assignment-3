@@ -245,10 +245,76 @@ class MainLayout:
         )
         status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-    """
-    This method creates the original and modified image section.
-    """
     def create_image_section(self, parent_frame):
         """
-        TODO:: Need to implement
+        This method creates the original and modified image section.
+        :param parent_frame:
+        :return:
         """
+        images_frame = tk.Frame(
+            parent_frame,
+            bg=APP_BACKGROUND_COLOUR
+        )
+        images_frame.pack(fill=tk.BOTH, expand=True)
+        self.original_image_area, self.original_label = self.create_image_card(
+            images_frame,
+            "Original Image",
+            "Original image will appear here"
+        )
+        self.modified_image_area, self.modified_label = self.create_image_card(
+            images_frame,
+            "Modified Image",
+            "Click the image to find differences"
+        )
+        self.modified_label.config(cursor="hand2")
+        self.modified_label.bind("<Button-1>", self.click_command)
+
+    def create_image_card(self, parent_frame, title, placeholder_text):
+        """
+        This method creates a modern image card.
+        :param parent_frame:
+        :param title:
+        :param placeholder_text:
+        :return:
+        """
+        card_frame = tk.Frame(
+            parent_frame,
+            bg=CARD_BACKGROUND_COLOUR,
+            padx=12,
+            pady=12,
+            highlightbackground=BORDER_COLOUR,
+            highlightthickness=1
+        )
+        card_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8)
+        title_label = tk.Label(
+            card_frame,
+            text=title,
+            font=APP_FONT_CARD_TITLE,
+            fg=TEXT_COLOUR,
+            bg=CARD_BACKGROUND_COLOUR
+        )
+        title_label.pack(anchor="w", pady=(0, 8))
+        image_area = tk.Frame(
+            card_frame,
+            bg=IMAGE_PLACEHOLDER_BACKGROUND,
+            width=IMAGE_AREA_MIN_WIDTH,
+            height=IMAGE_AREA_MIN_HEIGHT
+        )
+        image_area.pack(fill=tk.BOTH, expand=True)
+        image_area.pack_propagate(False)
+        image_label = tk.Label(
+            image_area,
+            text=placeholder_text,
+            font=APP_FONT_NORMAL,
+            fg=MUTED_TEXT_COLOUR,
+            bg=IMAGE_PLACEHOLDER_BACKGROUND,
+            bd=0,
+            padx=PLACEHOLDER_PADDING_X,
+            pady=PLACEHOLDER_PADDING_Y,
+            highlightthickness=0,
+            anchor="center",
+            justify=tk.CENTER,
+            wraplength=PLACEHOLDER_WRAP_LENGTH
+        )
+        image_label.pack(expand=True)
+        return image_area, image_label
