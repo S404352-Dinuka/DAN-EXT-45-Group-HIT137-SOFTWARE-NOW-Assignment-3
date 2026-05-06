@@ -16,7 +16,40 @@ class CanvasView:
     """
 
     def draw_difference_circles(self, original_image, modified_image, differences):
-        return original_image, modified_image
+        """
+        This method draws red circles for found differences and blue circles for revealed differences
+
+        It draws the circles on copies of the original and modified images,
+        so the original image data is not changed directly
+
+        :param original_image: The original OpenCV image
+        :param modified_image: The modified OpenCV image
+        :param differences: The list of difference objects used to decide where circles should be drawn
+        :return: Copies of the original and modified images with difference circles drawn on them
+        """
+        original_image_copy = original_image.copy()
+        modified_image_copy = modified_image.copy()
+        for difference in differences:
+            circle_colour = FOUND_COLOUR if difference.found else REVEAL_COLOUR if difference.revealed else None
+            if circle_colour is not None:
+                circle_center_x, circle_center_y = difference.get_region_center_point()
+                circle_radius = max(difference.width, difference.height) // 2 + 10
+                circle_thickness = max(2, circle_radius // 8)
+                cv2.circle(
+                    original_image_copy,
+                    (circle_center_x, circle_center_y),
+                    circle_radius,
+                    circle_colour,
+                    circle_thickness
+                )
+                cv2.circle(
+                    modified_image_copy,
+                    (circle_center_x, circle_center_y),
+                    circle_radius,
+                    circle_colour,
+                    circle_thickness
+                )
+        return original_image_copy, modified_image_copy
 
     def create_display_image(self, opencv_image, maximum_box_width, maximum_box_height):
         """
