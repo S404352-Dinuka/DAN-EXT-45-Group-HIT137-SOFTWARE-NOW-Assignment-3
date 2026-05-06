@@ -97,13 +97,120 @@ class MainLayout:
         )
         subtitle_label.pack(anchor="w", pady=(3, 0))
 
-    """
-    This method creates the button and score card section.
-    """
     def create_control_panel(self, parent_frame):
         """
-        TODO:: Need to implement
+        This method creates the main control panel.
+        :param parent_frame:
+        :return:
         """
+        panel_frame = tk.Frame(
+            parent_frame,
+            bg=CARD_BACKGROUND_COLOUR,
+            padx=14,
+            pady=12,
+            highlightbackground=BORDER_COLOUR,
+            highlightthickness=1
+        )
+        panel_frame.pack(fill=tk.X, pady=(0, 12))
+        button_frame = tk.Frame(
+            panel_frame,
+            bg=CARD_BACKGROUND_COLOUR
+        )
+        button_frame.pack(side=tk.LEFT)
+        load_button = self.create_button(
+            button_frame,
+            "Load Image",
+            self.load_command,
+            SECONDARY_COLOUR,
+            SECONDARY_HOVER_COLOUR
+        )
+        load_button.pack(side=tk.LEFT, padx=(0, 8))
+        reveal_button = self.create_button(
+            button_frame,
+            "Reveal Differences",
+            self.reveal_command,
+            SECONDARY_COLOUR,
+            SECONDARY_HOVER_COLOUR
+        )
+        reveal_button.pack(side=tk.LEFT)
+        stats_frame = tk.Frame(
+            panel_frame,
+            bg=CARD_BACKGROUND_COLOUR
+        )
+        stats_frame.pack(side=tk.RIGHT)
+        self.create_stat_card(stats_frame, "Remaining", self.remaining_text)
+        self.create_stat_card(stats_frame, "Mistakes", self.mistakes_text)
+        self.create_stat_card(stats_frame, "Score", self.score_text)
+
+    def create_button(self, parent_frame, text, command, normal_colour, hover_colour):
+        """
+        This method creates a clean button
+        :param parent_frame:
+        :param text:
+        :param command:
+        :param normal_colour:
+        :param hover_colour:
+        :return:
+        """
+        button = tk.Button(
+            parent_frame,
+            text=text,
+            command=command,
+            font=APP_FONT_BUTTON,
+            fg=hover_colour,
+            bg=normal_colour,
+            activeforeground=normal_colour,
+            activebackground=hover_colour,
+            relief=tk.FLAT,
+            bd=0,
+            padx=BUTTON_PADDING_X,
+            pady=BUTTON_PADDING_Y,
+            cursor="hand2",
+            highlightthickness=0
+        )
+        button.bind(
+            "<Enter>",
+            lambda event: button.configure(bg=hover_colour)
+        )
+        button.bind(
+            "<Leave>",
+            lambda event: button.configure(bg=normal_colour)
+        )
+        return button
+
+    def create_stat_card(self, parent_frame, title, text_variable):
+        """
+        This method creates a small statistic card.
+        :param parent_frame:
+        :param title:
+        :param text_variable:
+        :return:
+        """
+        card_frame = tk.Frame(
+            parent_frame,
+            bg="#F9FAFB",
+            padx=12,
+            pady=6,
+            highlightbackground=BORDER_COLOUR,
+            highlightthickness=1
+        )
+        card_frame.pack(side=tk.LEFT, padx=(8, 0))
+        title_label = tk.Label(
+            card_frame,
+            text=title,
+            font=APP_FONT_NORMAL,
+            fg=MUTED_TEXT_COLOUR,
+            bg="#F9FAFB"
+        )
+        title_label.pack(anchor="w")
+        value_label = tk.Label(
+            card_frame,
+            textvariable=text_variable,
+            font=APP_FONT_BOLD,
+            fg=TEXT_COLOUR,
+            bg="#F9FAFB"
+        )
+        value_label.pack(anchor="w")
 
     """
     This method creates a status message area.
