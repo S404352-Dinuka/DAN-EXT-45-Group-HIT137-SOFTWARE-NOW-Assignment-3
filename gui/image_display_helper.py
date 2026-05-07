@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 
 from utils.constants import FOUND_COLOUR, REVEAL_COLOUR
 
-class CanvasView:
+class ImageDisplayHelper:
     """
     This class handles image display operations for the game screen.
     """
