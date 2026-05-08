@@ -42,3 +42,47 @@ class StatusMessage(Enum):
     PLEASE_LOAD_IMAGE_FIRST = "Please load an image first."
     CLICK_INSIDE_MODIFIED_IMAGE = "Click inside the modified image."
     REVEAL_TITLE = "Reveal"
+
+class DialogTitle(Enum):
+    """
+    This enum stores titles used in file dialogs and message boxes.
+    """
+
+    CHOOSE_IMAGE = "Choose an image"
+    IMAGE_ERROR = "Image Error"
+    CLICK_ERROR = "Click Error"
+    REVEAL_ERROR = "Reveal Error"
+    ROUND_COMPLETE = "Round Complete"
+    ROUND_LOCKED = "Round Locked"
+    REVEAL = "Reveal"
+
+
+class FileTypeOption(Enum):
+    """
+    This enum stores file type options used in the image file dialog.
+    """
+
+    SUPPORTED_IMAGES = ("Supported image files", "*.jpg *.jpeg *.png *.bmp")
+    JPEG_IMAGES = ("JPEG files", "*.jpg *.jpeg")
+    PNG_IMAGES = ("PNG files", "*.png")
+    BMP_IMAGES = ("BMP files", "*.bmp")
+    ALL_FILES = ("All files", "*.*")
+
+
+class InfoLabelTemplate(Enum):
+    """
+    This enum stores text templates used for game information labels.
+    """
+
+    REMAINING = "Remaining: {remaining}"
+    MISTAKES = "Mistakes: {mistakes}/{max_mistakes}"
+    SCORE = "Round score: {round_score} | Total score: {total_score}"
+
+
+class ErrorMessageTemplate(Enum):
+    """
+    This enum stores error message templates that include dynamic values.
+    """
+
+    CLICK_ERROR = "Something went wrong while checking the click: {error}"
+    REVEAL_ERROR = "Could not reveal differences: {error}"
