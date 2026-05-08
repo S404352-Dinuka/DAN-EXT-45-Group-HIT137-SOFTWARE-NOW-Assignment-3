@@ -11,10 +11,10 @@ class Alterations:
     #Used open cv to select the area in the image to change the color channel to blue and applied it
 class Color_Change(Alterations):
     def apply(self, img, area):
-        x = area["x"]
-        y= area["y"]
-        w = area["w"]
-        h = area["h"]
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
 
         new_area = img[y:y + h, x:x + w]
         new_area[:, :, 0] = cv2.add(new_area[:,:,0], 50)
@@ -23,10 +23,10 @@ class Color_Change(Alterations):
     #Applied blur using opencv by selecting the area and set the kernal size to apply blur
 class Blur_Change(Alterations):
     def apply(self, img, area):
-        x = area["x"]
-        y= area["y"]
-        w = area["w"]
-        h = area["h"]
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
 
         new_area = img[y:y + h, x:x + w]
         blur_area = cv2.GaussianBlur(new_area, (17, 17), 0)
@@ -35,10 +35,10 @@ class Blur_Change(Alterations):
     #Changes the selected areas brightness using opencv by keeping the constrast alpha same and changing beta to increase the brightness
 class Change_Brightness(Alterations):
     def apply(self, img, area):
-        x = area["x"]
-        y= area["y"]
-        w = area["w"]
-        h = area["h"]
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
 
         new_area = img[y:y + h, x:x + w]
         bright_area = cv2.convertScaleAbs(new_area, alpha=1.0, beta=20)
@@ -47,10 +47,10 @@ class Change_Brightness(Alterations):
     
 class Change_GreyScale(Alterations):
     def apply(self, img, area):
-        x = area["x"]
-        y= area["y"]
-        w = area["w"]
-        h = area["h"]
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
 
         new_area = img[y:y + h, x:x + w]
         grey_area = cv2.cvtColor(new_area, cv2.COLOR_BGR2GRAY)
