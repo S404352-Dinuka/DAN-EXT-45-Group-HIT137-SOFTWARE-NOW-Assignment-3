@@ -4,6 +4,7 @@ from image_processing.alterations import Color_Change
 from image_processing.alterations import Blur_Change
 from image_processing.alterations import Change_Brightness
 from image_processing.alterations import Change_GreyScale
+from core.models import Difference
 
 class ImageModifiier:
     def __init__(self):
@@ -34,15 +35,14 @@ class ImageModifiier:
             area_y = random.randint(0, (img_heignt - area_height))
             area_type_no = random.randint(0, 3)
             area_type = self.diff_types[area_type_no]
-            new_area = {
-                "id" : len(self.diff) + 1,
-                "x" : area_x,
-                "y" : area_y,
-                "w" : area_width,
-                "h" : area_height,
-                "type" : area_type,
-                "found" : False
-            }
+            new_area = Difference(
+                x = area_x,
+                y = area_y,
+                width = area_width,
+                height = area_height,
+                alteration_name = area_type,
+                found = False
+            )
             #Checks for overlap and if no overlap then added to list
             check_overlap = self.check_area_overlap(new_area)
             if check_overlap == False:
@@ -52,15 +52,15 @@ class ImageModifiier:
     #Checks if there's any overlap with the existing areas with the new area
     def check_area_overlap(self, new_area):
         for area in self.diff:
-            new_left = new_area["x"]
-            new_right = new_area["x"] + new_area["w"]
-            new_top = new_area["y"]
-            new_bottom = new_area["y"] + new_area["h"]
+            new_left = new_area.x
+            new_right = new_area.x + new_area.width
+            new_top = new_area.y
+            new_bottom = new_area.y + new_area.height
 
-            area_left = area["x"]
-            area_right = area["x"] + area["w"]
-            area_top = area["y"]
-            area_bottom = area["y"] + area["h"]
+            area_left = area.x
+            area_right = area.x + area.width
+            area_top = area.y
+            area_bottom = area.y + area.height
 
             if new_top > area_bottom or new_bottom < area_top:
                 continue
@@ -72,13 +72,13 @@ class ImageModifiier:
     #Applies the image alterations to the specfied areas of the image according to the type of change
     def apply_alterations(self, img):
         for area in self.diff:
-            if area["type"] == "blur":
+            if area.alteration_name == "blur":
                 img = self.blur_change.apply(img, area)
-            elif area["type"] == "colour_shift":
+            elif area.alteration_name == "colour_shift":
                 img = self.color_change.apply(img, area)
-            elif area["type"] == "brightness":
+            elif area.alteration_name == "brightness":
                 img = self.change_brightness.apply(img, area)
-            elif area["type"] == "grey_shift":
+            elif area.alteration_name == "grey_shift":
                 img = self.change_greyscale.apply(img, area)
         return img
 
@@ -93,5 +93,5 @@ class ImageModifiier:
     
     #Converts images from bgr to rgb for display
     def convert_to_rgb(self, img):
-        rgb_img = cv2.cvtCoLor(img, cv2.COLOR_BGR2RGB)
+        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return rgb_img
