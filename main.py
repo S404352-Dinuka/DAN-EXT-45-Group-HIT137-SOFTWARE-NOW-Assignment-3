@@ -1,16 +1,27 @@
-# This is a sample Python script.
+"""
+This module is the entry point for the Spot the Difference application
+"""
 
-# Press ⌃F5 to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+try:
+    import tkinter as tk
+    from gui.app import SpotTheDifferenceApplication
+
+except Exception as import_error:
+    print("A required library or project file could not be loaded.")
+    print("Install requirements with: python3 -m pip install -r requirements.txt")
+    print("Exact error:", import_error)
+    raise SystemExit(1)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press F9 to toggle the breakpoint.
+def main():
+    """
+    This function starts the Spot the Difference application
+    It creates the main Tkinter window, initializes the application controller and starts the Tkinter event loop
+    """
+    root = tk.Tk()
+    SpotTheDifferenceApplication(root)
+    root.mainloop()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    main()
