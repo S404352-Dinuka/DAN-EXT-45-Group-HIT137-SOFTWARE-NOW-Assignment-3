@@ -1,17 +1,47 @@
+"""
+This module contains the image loading logic for the application
+It validates the selected image file format and loads the image using OpenCV
+"""
+
 import cv2
 import os
+from utils.status_messages import ImageFileExtension, StatusMessage
+
 
 class ImageLoader:
-    #Intailizes the image path used and the format of the image accepted
+    """
+    This class handles image file loading
+    It stores the accepted image formats and keeps track of the selected image path
+    """
+
     def __init__(self):
-        self.formats = [".jpg", ".jpeg", ".png", ".bmp"]
+        """
+        This method initializes the image loader with supported image formats
+        """
+        self.formats = [
+            ImageFileExtension.JPG.value,
+            ImageFileExtension.JPEG.value,
+            ImageFileExtension.PNG.value,
+            ImageFileExtension.BMP.value
+        ]
         self.img_path = None
-    #Loads the image and checks if the image loaded properly
+
     def load_img(self, filePath):
+        """
+        This method loads an image from the given file path
+        It checks whether the selected file type is supported and then loads
+        the image using OpenCV
+
+        :param filePath: The path of the image file selected by the user
+        :return: The loaded OpenCV image if successful, otherwise a ValueError object
+        """
         self.img_path = filePath
         file_type = os.path.splitext(filePath)[1].lower()
+
         if file_type in self.formats:
             img = cv2.imread(filePath)
+
             if img is None:
-                return ValueError("Image not loaded")
+                return ValueError(StatusMessage.IMAGE_COULD_NOT_BE_LOADED)
+
             return img

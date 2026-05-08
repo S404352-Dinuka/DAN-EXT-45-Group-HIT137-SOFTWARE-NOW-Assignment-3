@@ -41,7 +41,6 @@ class StatusMessage(Enum):
     NEW_IMAGE_LOADED = "New image loaded. Click the modified image to find the 5 differences."
     PLEASE_LOAD_IMAGE_FIRST = "Please load an image first."
     CLICK_INSIDE_MODIFIED_IMAGE = "Click inside the modified image."
-    REVEAL_TITLE = "Reveal"
 
 class DialogTitle(Enum):
     """
@@ -56,6 +55,15 @@ class DialogTitle(Enum):
     ROUND_LOCKED = "Round Locked"
     REVEAL = "Reveal"
 
+class ImageFileExtension(Enum):
+    """
+    This enum stores supported image file extensions.
+    """
+
+    JPG = ".jpg"
+    JPEG = ".jpeg"
+    PNG = ".png"
+    BMP = ".bmp"
 
 class FileTypeOption(Enum):
     """
@@ -109,6 +117,15 @@ class LayoutText(Enum):
     ORIGINAL_IMAGE_PLACEHOLDER = "Original image will appear here"
     MODIFIED_IMAGE_PLACEHOLDER = "Click the image to find differences"
 
+class AlterationType(Enum):
+    """
+    This enum stores the image alteration type names used by the image modifier.
+    """
+
+    BLUR = "blur"
+    COLOUR_SHIFT = "colour_shift"
+    BRIGHTNESS = "brightness"
+    GREY_SHIFT = "grey_shift"
 
 class TkinterEvent(Enum):
     """
