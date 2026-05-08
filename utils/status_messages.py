@@ -86,3 +86,45 @@ class ErrorMessageTemplate(Enum):
 
     CLICK_ERROR = "Something went wrong while checking the click: {error}"
     REVEAL_ERROR = "Could not reveal differences: {error}"
+
+
+class LayoutText(Enum):
+    """
+    This enum stores text values used in the Tkinter layout.
+    """
+
+    APP_HEADER_TITLE = "Spot the Difference"
+    APP_HEADER_SUBTITLE = "Find all 5 hidden changes in the modified image."
+
+    LOAD_IMAGE_BUTTON = "Load Image"
+    REVEAL_DIFFERENCES_BUTTON = "Reveal Differences"
+
+    REMAINING_STAT_TITLE = "Remaining"
+    MISTAKES_STAT_TITLE = "Mistakes"
+    SCORE_STAT_TITLE = "Score"
+
+    ORIGINAL_IMAGE_TITLE = "Original Image"
+    MODIFIED_IMAGE_TITLE = "Modified Image"
+
+    ORIGINAL_IMAGE_PLACEHOLDER = "Original image will appear here"
+    MODIFIED_IMAGE_PLACEHOLDER = "Click the image to find differences"
+
+
+class TkinterEvent(Enum):
+    """
+    This enum stores Tkinter event binding strings.
+    """
+
+    MOUSE_ENTER = "<Enter>"
+    MOUSE_LEAVE = "<Leave>"
+    LEFT_MOUSE_CLICK = "<Button-1>"
+
+
+class TkinterOption(Enum):
+    """
+    This enum stores Tkinter option string values.
+    """
+
+    WEST_ANCHOR = "w"
+    CENTER_ANCHOR = "center"
+    HAND_CURSOR = "hand2"

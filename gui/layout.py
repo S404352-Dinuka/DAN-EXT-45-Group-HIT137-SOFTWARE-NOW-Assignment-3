@@ -26,11 +26,40 @@ from utils.constants import (
     PLACEHOLDER_WRAP_LENGTH,
     SECONDARY_COLOUR,
     SECONDARY_HOVER_COLOUR,
+    BORDER_THICKNESS,
+    BUTTON_RIGHT_MARGIN,
+    CONTROL_PANEL_BOTTOM_MARGIN,
+    CONTROL_PANEL_PADDING_X,
+    CONTROL_PANEL_PADDING_Y,
+    HEADER_BOTTOM_MARGIN,
+    HEADER_SUBTITLE_TOP_MARGIN,
+    IMAGE_CARD_PADDING_X,
+    IMAGE_CARD_PADDING_Y,
+    IMAGE_CARD_SIDE_MARGIN,
+    IMAGE_CARD_TITLE_BOTTOM_MARGIN,
+    MAIN_CONTAINER_PADDING_X,
+    MAIN_CONTAINER_PADDING_Y,
+    STAT_CARD_LEFT_MARGIN,
+    STAT_CARD_PADDING_X,
+    STAT_CARD_PADDING_Y,
+    STATUS_ACCENT_BAR_WIDTH,
     STATUS_ACCENT_COLOUR,
     STATUS_BACKGROUND_COLOUR,
+    STATUS_BAR_BOTTOM_MARGIN,
+    STATUS_LABEL_PADDING_X,
+    STATUS_LABEL_PADDING_Y,
+    STATUS_LABEL_WRAP_LENGTH,
     STATUS_TEXT_COLOUR,
     TEXT_COLOUR,
+    ZERO_BORDER,
+    ZERO_SPACING,
 )
+from utils.status_messages import (
+    LayoutText,
+    TkinterEvent,
+    TkinterOption,
+)
+
 
 class MainLayout:
     """
@@ -63,8 +92,8 @@ class MainLayout:
         main_container = tk.Frame(
             self.root,
             bg=APP_BACKGROUND_COLOUR,
-            padx=18,
-            pady=16
+            padx=MAIN_CONTAINER_PADDING_X,
+            pady=MAIN_CONTAINER_PADDING_Y
         )
         main_container.pack(fill=tk.BOTH, expand=True)
         self.create_header(main_container)
@@ -83,23 +112,31 @@ class MainLayout:
             parent_frame,
             bg=APP_BACKGROUND_COLOUR
         )
-        header_frame.pack(fill=tk.X, pady=(0, 14))
+        header_frame.pack(
+            fill=tk.X,
+            pady=(ZERO_SPACING, HEADER_BOTTOM_MARGIN)
+        )
+
         title_label = tk.Label(
             header_frame,
-            text="Spot the Difference",
+            text=LayoutText.APP_HEADER_TITLE.value,
             font=APP_FONT_TITLE,
             fg=TEXT_COLOUR,
             bg=APP_BACKGROUND_COLOUR
         )
-        title_label.pack(anchor="w")
+        title_label.pack(anchor=TkinterOption.WEST_ANCHOR.value)
+
         subtitle_label = tk.Label(
             header_frame,
-            text="Find all 5 hidden changes in the modified image.",
+            text=LayoutText.APP_HEADER_SUBTITLE.value,
             font=APP_FONT_SUBTITLE,
             fg=MUTED_TEXT_COLOUR,
             bg=APP_BACKGROUND_COLOUR
         )
-        subtitle_label.pack(anchor="w", pady=(3, 0))
+        subtitle_label.pack(
+            anchor=TkinterOption.WEST_ANCHOR.value,
+            pady=(HEADER_SUBTITLE_TOP_MARGIN, ZERO_SPACING)
+        )
 
     def create_control_panel(self, parent_frame):
         """
@@ -111,12 +148,16 @@ class MainLayout:
         panel_frame = tk.Frame(
             parent_frame,
             bg=CARD_BACKGROUND_COLOUR,
-            padx=14,
-            pady=12,
+            padx=CONTROL_PANEL_PADDING_X,
+            pady=CONTROL_PANEL_PADDING_Y,
             highlightbackground=BORDER_COLOUR,
-            highlightthickness=1
+            highlightthickness=BORDER_THICKNESS
         )
-        panel_frame.pack(fill=tk.X, pady=(0, 12))
+        panel_frame.pack(
+            fill=tk.X,
+            pady=(ZERO_SPACING, CONTROL_PANEL_BOTTOM_MARGIN)
+        )
+
         button_frame = tk.Frame(
             panel_frame,
             bg=CARD_BACKGROUND_COLOUR
@@ -124,15 +165,19 @@ class MainLayout:
         button_frame.pack(side=tk.LEFT)
         load_button = self.create_button(
             button_frame,
-            "Load Image",
+            LayoutText.LOAD_IMAGE_BUTTON.value,
             self.load_command,
             SECONDARY_COLOUR,
             SECONDARY_HOVER_COLOUR
         )
-        load_button.pack(side=tk.LEFT, padx=(0, 8))
+        load_button.pack(
+            side=tk.LEFT,
+            padx=(ZERO_SPACING, BUTTON_RIGHT_MARGIN)
+        )
+
         reveal_button = self.create_button(
             button_frame,
-            "Reveal Differences",
+            LayoutText.REVEAL_DIFFERENCES_BUTTON.value,
             self.reveal_command,
             SECONDARY_COLOUR,
             SECONDARY_HOVER_COLOUR
@@ -143,9 +188,22 @@ class MainLayout:
             bg=CARD_BACKGROUND_COLOUR
         )
         stats_frame.pack(side=tk.RIGHT)
-        self.create_stat_card(stats_frame, "Remaining", self.remaining_text)
-        self.create_stat_card(stats_frame, "Mistakes", self.mistakes_text)
-        self.create_stat_card(stats_frame, "Score", self.score_text)
+
+        self.create_stat_card(
+            stats_frame,
+            LayoutText.REMAINING_STAT_TITLE.value,
+            self.remaining_text
+        )
+        self.create_stat_card(
+            stats_frame,
+            LayoutText.MISTAKES_STAT_TITLE.value,
+            self.mistakes_text
+        )
+        self.create_stat_card(
+            stats_frame,
+            LayoutText.SCORE_STAT_TITLE.value,
+            self.score_text
+        )
 
     def create_button(self, parent_frame, text, command, normal_colour, hover_colour):
         """
@@ -168,18 +226,18 @@ class MainLayout:
             activeforeground=normal_colour,
             activebackground=hover_colour,
             relief=tk.FLAT,
-            bd=0,
+            bd=ZERO_BORDER,
             padx=BUTTON_PADDING_X,
             pady=BUTTON_PADDING_Y,
-            cursor="hand2",
-            highlightthickness=0
+            cursor=TkinterOption.HAND_CURSOR.value,
+            highlightthickness=ZERO_BORDER
         )
         button.bind(
-            "<Enter>",
+            TkinterEvent.MOUSE_ENTER.value,
             lambda event: button.configure(bg=hover_colour)
         )
         button.bind(
-            "<Leave>",
+            TkinterEvent.MOUSE_LEAVE.value,
             lambda event: button.configure(bg=normal_colour)
         )
         return button
@@ -195,29 +253,34 @@ class MainLayout:
         """
         card_frame = tk.Frame(
             parent_frame,
-            bg="#F9FAFB",
-            padx=12,
-            pady=6,
+            bg=STATUS_TEXT_COLOUR,
+            padx=STAT_CARD_PADDING_X,
+            pady=STAT_CARD_PADDING_Y,
             highlightbackground=BORDER_COLOUR,
-            highlightthickness=1
+            highlightthickness=BORDER_THICKNESS
         )
-        card_frame.pack(side=tk.LEFT, padx=(8, 0))
+        card_frame.pack(
+            side=tk.LEFT,
+            padx=(STAT_CARD_LEFT_MARGIN, ZERO_SPACING)
+        )
+
         title_label = tk.Label(
             card_frame,
             text=title,
             font=APP_FONT_NORMAL,
             fg=MUTED_TEXT_COLOUR,
-            bg="#F9FAFB"
+            bg=STATUS_TEXT_COLOUR
         )
-        title_label.pack(anchor="w")
+        title_label.pack(anchor=TkinterOption.WEST_ANCHOR.value)
+
         value_label = tk.Label(
             card_frame,
             textvariable=text_variable,
             font=APP_FONT_BOLD,
             fg=TEXT_COLOUR,
-            bg="#F9FAFB"
+            bg=STATUS_TEXT_COLOUR
         )
-        value_label.pack(anchor="w")
+        value_label.pack(anchor=TkinterOption.WEST_ANCHOR.value)
 
     def create_status_label(self, parent_frame):
         """
@@ -230,13 +293,17 @@ class MainLayout:
             parent_frame,
             bg=STATUS_BACKGROUND_COLOUR,
             highlightbackground=STATUS_BACKGROUND_COLOUR,
-            highlightthickness=1
+            highlightthickness=BORDER_THICKNESS
         )
-        status_frame.pack(fill=tk.X, pady=(0, 12))
+        status_frame.pack(
+            fill=tk.X,
+            pady=(ZERO_SPACING, STATUS_BAR_BOTTOM_MARGIN)
+        )
+
         accent_bar = tk.Frame(
             status_frame,
             bg=STATUS_ACCENT_COLOUR,
-            width=5
+            width=STATUS_ACCENT_BAR_WIDTH
         )
         accent_bar.pack(side=tk.LEFT, fill=tk.Y)
         status_label = tk.Label(
@@ -245,11 +312,11 @@ class MainLayout:
             font=APP_FONT_STATUS,
             fg=STATUS_TEXT_COLOUR,
             bg=STATUS_BACKGROUND_COLOUR,
-            padx=12,
-            pady=9,
-            wraplength=900,
+            padx=STATUS_LABEL_PADDING_X,
+            pady=STATUS_LABEL_PADDING_Y,
+            wraplength=STATUS_LABEL_WRAP_LENGTH,
             justify=tk.LEFT,
-            anchor="w"
+            anchor=TkinterOption.WEST_ANCHOR.value
         )
         status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -267,16 +334,19 @@ class MainLayout:
         images_frame.pack(fill=tk.BOTH, expand=True)
         self.original_image_area, self.original_label = self.create_image_card(
             images_frame,
-            "Original Image",
-            "Original image will appear here"
+            LayoutText.ORIGINAL_IMAGE_TITLE.value,
+            LayoutText.ORIGINAL_IMAGE_PLACEHOLDER.value
         )
         self.modified_image_area, self.modified_label = self.create_image_card(
             images_frame,
-            "Modified Image",
-            "Click the image to find differences"
+            LayoutText.MODIFIED_IMAGE_TITLE.value,
+            LayoutText.MODIFIED_IMAGE_PLACEHOLDER.value
         )
-        self.modified_label.config(cursor="hand2")
-        self.modified_label.bind("<Button-1>", self.click_command)
+        self.modified_label.config(cursor=TkinterOption.HAND_CURSOR.value)
+        self.modified_label.bind(
+            TkinterEvent.LEFT_MOUSE_CLICK.value,
+            self.click_command
+        )
 
     def create_image_card(self, parent_frame, title, placeholder_text):
         """
@@ -290,12 +360,18 @@ class MainLayout:
         card_frame = tk.Frame(
             parent_frame,
             bg=CARD_BACKGROUND_COLOUR,
-            padx=12,
-            pady=12,
+            padx=IMAGE_CARD_PADDING_X,
+            pady=IMAGE_CARD_PADDING_Y,
             highlightbackground=BORDER_COLOUR,
-            highlightthickness=1
+            highlightthickness=BORDER_THICKNESS
         )
-        card_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8)
+        card_frame.pack(
+            side=tk.LEFT,
+            fill=tk.BOTH,
+            expand=True,
+            padx=IMAGE_CARD_SIDE_MARGIN
+        )
+
         title_label = tk.Label(
             card_frame,
             text=title,
@@ -303,7 +379,11 @@ class MainLayout:
             fg=TEXT_COLOUR,
             bg=CARD_BACKGROUND_COLOUR
         )
-        title_label.pack(anchor="w", pady=(0, 8))
+        title_label.pack(
+            anchor=TkinterOption.WEST_ANCHOR.value,
+            pady=(ZERO_SPACING, IMAGE_CARD_TITLE_BOTTOM_MARGIN)
+        )
+
         image_area = tk.Frame(
             card_frame,
             bg=IMAGE_PLACEHOLDER_BACKGROUND,
@@ -318,11 +398,11 @@ class MainLayout:
             font=APP_FONT_NORMAL,
             fg=MUTED_TEXT_COLOUR,
             bg=IMAGE_PLACEHOLDER_BACKGROUND,
-            bd=0,
+            bd=ZERO_BORDER,
             padx=PLACEHOLDER_PADDING_X,
             pady=PLACEHOLDER_PADDING_Y,
-            highlightthickness=0,
-            anchor="center",
+            highlightthickness=ZERO_BORDER,
+            anchor=TkinterOption.CENTER_ANCHOR.value,
             justify=tk.CENTER,
             wraplength=PLACEHOLDER_WRAP_LENGTH
         )
