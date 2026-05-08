@@ -4,7 +4,7 @@ from image_processing.alterations import Color_Change
 from image_processing.alterations import Blur_Change
 from image_processing.alterations import Change_Brightness
 from image_processing.alterations import Change_GreyScale
-from core.models import Difference
+from core.difference import Difference
 
 class ImageModifiier:
     def __init__(self):
