@@ -12,11 +12,13 @@ from image_processing.image_effect import PixelateEffect
 from image_processing.image_effect import ContrastEffect
 from core.difference import Difference
 from utils.status_messages import ImageEffectType
+from utils.helpers import calculate_difference_circle_radius
 from utils.constants import (
     MAX_DIFFERENCE_AREA_SIZE_DIVISOR,
     MIN_DIFFERENCE_AREA_SIZE_DIVISOR,
     NUMBER_OF_DIFFERENCES,
-    MIN_REGION_DETAIL_SCORE
+    MIN_REGION_DETAIL_SCORE,
+    DIFFERENCE_CIRCLE_MIN_GAP
 )
 
 class ModifiedImageBuilder:
@@ -99,27 +101,54 @@ class ModifiedImageBuilder:
 
     def check_area_overlap(self, new_area):
         """
-        This method checks whether a new difference area overlaps with an existing area
+        Checks whether a new difference area overlaps with an existing area
 
-        :param new_area: created difference area that needs to be checked
-        :return: True if the new area overlaps with an existing area, otherwise False
+        :param new_area: Newly created difference area
+        :return: True if the new area overlaps otherwise False
         """
-        for area in self.diff:
-            new_left = new_area.x
-            new_right = new_area.x + new_area.width
-            new_top = new_area.y
-            new_bottom = new_area.y + new_area.height
+        new_left = new_area.x
+        new_right = new_area.x + new_area.width
+        new_top = new_area.y
+        new_bottom = new_area.y + new_area.height
 
+        new_center_x, new_center_y = new_area.get_region_center_point()
+        new_circle_radius = calculate_difference_circle_radius(new_area)
+        for area in self.diff:
             area_left = area.x
             area_right = area.x + area.width
             area_top = area.y
             area_bottom = area.y + area.height
 
-            if new_top > area_bottom or new_bottom < area_top:
-                continue
-            elif new_left > area_right or new_right < area_left:
-                continue
-            return True
+            rectangles_overlap = not (
+                new_top > area_bottom
+                or new_bottom < area_top
+                or new_left > area_right
+                or new_right < area_left
+            )
+
+            if rectangles_overlap:
+                return True
+
+            area_center_x, area_center_y = area.get_region_center_point()
+            area_circle_radius = calculate_difference_circle_radius(area)
+
+            distance_x = new_center_x - area_center_x
+            distance_y = new_center_y - area_center_y
+
+            distance_between_centres_squared = (
+                distance_x * distance_x
+                + distance_y * distance_y
+            )
+
+            minimum_allowed_distance = (
+                new_circle_radius
+                + area_circle_radius
+                + DIFFERENCE_CIRCLE_MIN_GAP
+            )
+
+            if distance_between_centres_squared < minimum_allowed_distance * minimum_allowed_distance:
+                return True
+
         return False
 
     def apply_alterations(self, img):
