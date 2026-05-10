@@ -60,6 +60,8 @@ class SpotTheDifferenceApplication:
         self.original_photo = None
         self.modified_photo = None
         self.display_scale = DEFAULT_DISPLAY_SCALE
+        self.resize_after_id = None
+        self.last_image_area_size = None
         self.max_image_width = MAX_DISPLAY_WIDTH
         self.max_image_height = MAX_DISPLAY_HEIGHT
         self.setup_image_display_size()
@@ -68,6 +70,15 @@ class SpotTheDifferenceApplication:
             self.load_image,
             self.reveal_differences,
             self.on_modified_image_click
+        )
+        self.layout.original_image_area.bind(
+            "<Configure>",
+            self.on_image_area_resize
+        )
+
+        self.layout.modified_image_area.bind(
+            "<Configure>",
+            self.on_image_area_resize
         )
         self.update_info_labels()
         self.update_layout_status_text(StatusMessage.LOAD_IMAGE_TO_START)
@@ -309,6 +320,7 @@ class SpotTheDifferenceApplication:
         )
 
         display_width, display_height = self.get_available_image_display_size()
+        self.last_image_area_size = (display_width, display_height)
 
         self.original_photo, original_scale = self.image_display_helper.create_display_image(
             original_marked,
@@ -384,3 +396,40 @@ class SpotTheDifferenceApplication:
             self.layout.status_text.set(status_message.value)
         else:
             self.layout.status_text.set(status_message)
+
+    def on_image_area_resize(self, event):
+        """
+        This method handles resize events from the image display areas.
+
+        :param event:Tkinter resize event
+        """
+        if self.game_state_manager.original_image is None:
+            return
+
+        if self.game_state_manager.modified_image is None:
+            return
+
+        if self.resize_after_id is not None:
+            self.root.after_cancel(self.resize_after_id)
+
+        self.resize_after_id = self.root.after(
+            200,
+            self.resize_displayed_images
+        )
+
+    def resize_displayed_images(self):
+        """
+        This method refreshes the displayed images after the image area size changes
+
+        :return: None
+        """
+        self.resize_after_id = None
+
+        display_width, display_height = self.get_available_image_display_size()
+        current_image_area_size = (display_width, display_height)
+
+        if current_image_area_size == self.last_image_area_size:
+            return
+
+        self.last_image_area_size = current_image_area_size
+        self.refresh_images()
