@@ -1,8 +1,5 @@
 """
 This module provides image display helper functions for the Tkinter GUI.
-
-It converts OpenCV images into Tkinter compatible images and draws
-difference circles on copies of the original and modified images.
 """
 
 import cv2
@@ -19,13 +16,10 @@ class ImageDisplayHelper:
         """
         This method draws red circles for found differences and blue circles for revealed differences
 
-        It draws the circles on copies of the original and modified images,
-        so the original image data is not changed directly
-
-        :param original_image: The original OpenCV image
-        :param modified_image: The modified OpenCV image
-        :param differences: The list of difference objects used to decide where circles should be drawn
-        :return: Copies of the original and modified images with difference circles drawn on them
+        :param original_image: The original image
+        :param modified_image: The modified image
+        :param differences: The list of difference objects
+        :return: Copies of the original and modified images with difference circles
         """
         original_image_copy = original_image.copy()
         modified_image_copy = modified_image.copy()
@@ -55,13 +49,9 @@ class ImageDisplayHelper:
         """
         This method prepares an OpenCV image for display in Tkinter.
 
-        It resizes the image to fit inside the given display box while keeping
-        the original aspect ratio. It then converts the resized OpenCV image into
-        a Tkinter PhotoImage.
-
-        :param opencv_image: The OpenCV image that needs to be displayed
-        :param maximum_box_width: The maximum width allowed for the displayed image
-        :param maximum_box_height: The maximum height allowed for the displayed image
+        :param opencv_image: Image that needs to be displayed
+        :param maximum_box_width: Maximum width allowed for the displayed image
+        :param maximum_box_height: Maximum height allowed for the displayed image
         :return: A Tkinter PhotoImage and the scale value used during resizing
         """
         original_image_height = opencv_image.shape[0]

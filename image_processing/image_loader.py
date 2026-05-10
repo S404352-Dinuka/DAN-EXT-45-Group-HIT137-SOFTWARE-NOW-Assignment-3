@@ -11,7 +11,6 @@ from utils.status_messages import ImageFileExtension, StatusMessage
 class ImageLoader:
     """
     This class handles image file loading
-    It stores the accepted image formats and keeps track of the selected image path
     """
 
     def __init__(self):
@@ -29,11 +28,9 @@ class ImageLoader:
     def load_img(self, filePath):
         """
         This method loads an image from the given file path
-        It checks whether the selected file type is supported and then loads
-        the image using OpenCV
 
-        :param filePath: The path of the image file selected by the user
-        :return: The loaded OpenCV image if successful, otherwise a ValueError object
+        :param filePath:path of the image file
+        :return: Loaded image if successful, otherwise a ValueError object
         """
         self.img_path = filePath
         file_type = os.path.splitext(filePath)[1].lower()
@@ -42,6 +39,6 @@ class ImageLoader:
             img = cv2.imread(filePath)
 
             if img is None:
-                return ValueError(StatusMessage.IMAGE_COULD_NOT_BE_LOADED)
+                return ValueError(StatusMessage.IMAGE_COULD_NOT_BE_LOADED.value)
 
             return img
