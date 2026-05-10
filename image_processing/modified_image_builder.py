@@ -8,15 +8,18 @@ from image_processing.image_effect import ColourEffect
 from image_processing.image_effect import BlurEffect
 from image_processing.image_effect import BrightnessEffect
 from image_processing.image_effect import GreyscaleEffect
+from image_processing.image_effect import PixelateEffect
+from image_processing.image_effect import ContrastEffect
 from core.difference import Difference
-from utils.status_messages import AlterationType
+from utils.status_messages import ImageEffectType
 from utils.constants import (
     MAX_DIFFERENCE_AREA_SIZE_DIVISOR,
     MIN_DIFFERENCE_AREA_SIZE_DIVISOR,
     NUMBER_OF_DIFFERENCES,
+    MIN_REGION_DETAIL_SCORE
 )
 
-class ImageModifiier:
+class ModifiedImageBuilder:
     """
     This class creates the modified version of the selected image
     """
@@ -28,15 +31,19 @@ class ImageModifiier:
         self.count_diff = NUMBER_OF_DIFFERENCES
         self.diff = []
         self.diff_types = [
-            AlterationType.BLUR.value,
-            AlterationType.COLOUR_SHIFT.value,
-            AlterationType.BRIGHTNESS.value,
-            AlterationType.GREY_SHIFT.value
+            ImageEffectType.BLUR.value,
+            ImageEffectType.COLOUR_SHIFT.value,
+            ImageEffectType.BRIGHTNESS.value,
+            ImageEffectType.GREY_SHIFT.value,
+            ImageEffectType.PIXELATE.value,
+            ImageEffectType.CONTRAST.value
         ]
         self.color_effect = ColourEffect()
         self.blur_effect = BlurEffect()
         self.brightness_effect = BrightnessEffect()
         self.greyscale_effect = GreyscaleEffect()
+        self.pixelate_effect = PixelateEffect()
+        self.contrast_effect = ContrastEffect()
 
     def copy_img(self, img):
         """
@@ -83,7 +90,9 @@ class ImageModifiier:
             )
 
             check_overlap = self.check_area_overlap(new_area)
-            if check_overlap == False:
+            has_detail = self.has_enough_visual_detail(img, new_area)
+
+            if not check_overlap and has_detail:
                 self.diff.append(new_area)
 
         return self.diff
@@ -121,17 +130,23 @@ class ImageModifiier:
         :return: image after all alterations have been applied
         """
         for area in self.diff:
-            if area.alteration_name == AlterationType.BLUR.value:
+            if area.alteration_name == ImageEffectType.BLUR.value:
                 img = self.blur_effect.apply(img, area)
 
-            elif area.alteration_name == AlterationType.COLOUR_SHIFT.value:
+            elif area.alteration_name == ImageEffectType.COLOUR_SHIFT.value:
                 img = self.color_effect.apply(img, area)
 
-            elif area.alteration_name == AlterationType.BRIGHTNESS.value:
+            elif area.alteration_name == ImageEffectType.BRIGHTNESS.value:
                 img = self.brightness_effect.apply(img, area)
 
-            elif area.alteration_name == AlterationType.GREY_SHIFT.value:
+            elif area.alteration_name == ImageEffectType.GREY_SHIFT.value:
                 img = self.greyscale_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.PIXELATE.value:
+                img = self.pixelate_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.CONTRAST.value:
+                img = self.contrast_effect.apply(img, area)
         return img
 
     def get_alterations(self):
@@ -152,3 +167,21 @@ class ImageModifiier:
         height = img.shape[0]
         width = img.shape[1]
         return height, width
+
+    def has_enough_visual_detail(self, img, area):
+        """
+        Checks whether the selected image area has enough texture or colour variation.
+
+        :param img: OpenCV image
+        :param area: Difference area containing x, y, width, and height
+        :return: True if the selected area has enough visual detail, otherwise False
+        """
+        selected_area = img[
+            area.y:area.y + area.height,
+            area.x:area.x + area.width
+        ]
+
+        grey_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2GRAY)
+        detail_score = grey_area.std()
+
+        return detail_score >= MIN_REGION_DETAIL_SCORE

@@ -29,7 +29,7 @@ class Difference:
         center_point_y = self.y + self.height // 2
         return center_point_x, center_point_y
 
-    def is_click_within_region(self, click_cord_x, click_cord_y, tolerance):
+    def check_if_click_within_region(self, click_cord_x, click_cord_y, tolerance):
         """
         This method checks whether the player's click is inside this difference region
 
@@ -48,7 +48,7 @@ class Difference:
 
         return click_within_horizontal_range and click_within_vertical_range
 
-    def is_difference_resolved(self):
+    def check_if_difference_resolved(self):
         """
         This method checks whether this difference no longer needs to be guessed
 

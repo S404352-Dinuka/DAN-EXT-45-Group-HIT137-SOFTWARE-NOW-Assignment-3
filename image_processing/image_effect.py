@@ -6,9 +6,17 @@ import cv2
 from utils.constants import (
     BLUR_KERNEL_SIZE,
     BRIGHTNESS_CHANGE_BETA,
-    COLOUR_CHANGE_INCREMENT,
+    PIXELATE_SCALE_DOWN_FACTOR,
+    HUE_SHIFT_VALUE,
+    SATURATION_SHIFT_VALUE,
+    BLUR_EDGE_THRESHOLD_HIGH,
+    BLUR_EDGE_THRESHOLD_LOW,
+    MIN_BLUR_EDGE_DENSITY,
+    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE,
+    PLAIN_REGION_BRIGHTNESS_THRESHOLD,
+    CONTRAST_EFFECT_ALPHA,
+    CONTRAST_EFFECT_BETA,
 )
-
 
 class ImageEffect:
     """
@@ -31,7 +39,6 @@ class ImageEffect:
         """
         pass
 
-
 class ColourEffect(ImageEffect):
     """
     This class applies a color change to a selected image area
@@ -50,22 +57,24 @@ class ColourEffect(ImageEffect):
         w = area.width
         h = area.height
 
-        new_area = img[y:y + h, x:x + w]
-        avg_color = cv2.mean(new_area)
-        avg_blue = avg_color[0]
-        avg_green = avg_color[1]
-        avg_red = avg_color[2]
+        selected_area = img[y:y + h, x:x + w]
 
-        if avg_green > avg_blue and avg_green > avg_red:
-            new_area[:, :, 0] = cv2.add(new_area[:, :, 0], COLOUR_CHANGE_INCREMENT)
-        elif avg_red > avg_green and avg_red > avg_blue:
-            new_area[:, :, 1] = cv2.add(new_area[:, :, 1], COLOUR_CHANGE_INCREMENT)
-        else:
-            new_area[:, :, 2] = cv2.add(new_area[:, :, 2], COLOUR_CHANGE_INCREMENT)
+        hsv_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2HSV)
 
-        img[y:y+h, x:x+w] = new_area
+        hue_channel = hsv_area[:, :, 0].astype("int16")
+        shifted_hue_channel = (hue_channel + HUE_SHIFT_VALUE) % 180
+        hsv_area[:, :, 0] = shifted_hue_channel.astype("uint8")
+
+        hsv_area[:, :, 1] = cv2.add(
+            hsv_area[:, :, 1],
+            SATURATION_SHIFT_VALUE
+        )
+
+        changed_area = cv2.cvtColor(hsv_area, cv2.COLOR_HSV2BGR)
+
+        img[y:y + h, x:x + w] = changed_area
+
         return img
-
 
 class BlurEffect(ImageEffect):
     """
@@ -85,12 +94,39 @@ class BlurEffect(ImageEffect):
         w = area.width
         h = area.height
 
-        new_area = img[y:y + h, x:x + w]
-        enchanced_area = cv2.convertScaleAbs(new_area, alpha=1.0, beta=35)
-        blur_area = cv2.GaussianBlur(enchanced_area, (BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE), 0)
-        img[y:y+h, x:x+w] = blur_area
-        return img
+        selected_area = img[y:y + h, x:x + w]
 
+        grey_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2GRAY)
+
+        edge_image = cv2.Canny(
+            grey_area,
+            BLUR_EDGE_THRESHOLD_LOW,
+            BLUR_EDGE_THRESHOLD_HIGH
+        )
+
+        edge_density = cv2.countNonZero(edge_image) / edge_image.size
+
+        blurred_area = cv2.GaussianBlur(
+            selected_area,
+            (BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE),
+            0
+        )
+
+        if edge_density < MIN_BLUR_EDGE_DENSITY:
+            if blurred_area.mean() > PLAIN_REGION_BRIGHTNESS_THRESHOLD:
+                blurred_area = cv2.subtract(
+                    blurred_area,
+                    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE
+                )
+            else:
+                blurred_area = cv2.add(
+                    blurred_area,
+                    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE
+                )
+
+        img[y:y + h, x:x + w] = blurred_area
+
+        return img
 
 class BrightnessEffect(ImageEffect):
     """
@@ -115,7 +151,6 @@ class BrightnessEffect(ImageEffect):
         img[y:y+h, x:x+w] = bright_area
         return img
 
-
 class GreyscaleEffect(ImageEffect):
     """
     This class converts a selected image area into greyscale
@@ -138,4 +173,73 @@ class GreyscaleEffect(ImageEffect):
         grey_area = cv2.cvtColor(new_area, cv2.COLOR_BGR2GRAY)
         grey_area_bgr = cv2.cvtColor(grey_area, cv2.COLOR_GRAY2BGR)
         img[y:y+h, x:x+w] = grey_area_bgr
+        return img
+
+class PixelateEffect(ImageEffect):
+    """
+    This class applies a pixelation effect to a selected image area
+    """
+
+    def apply(self, img, area):
+        """
+        Pixelates the selected image area by resizing it down and back up
+
+        :param img: The image that will be modified
+        :param area: The selected difference area
+        :return: The modified image
+        """
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
+
+        selected_area = img[y:y + h, x:x + w]
+
+        small_width = max(1, w // PIXELATE_SCALE_DOWN_FACTOR)
+        small_height = max(1, h // PIXELATE_SCALE_DOWN_FACTOR)
+
+        small_area = cv2.resize(
+            selected_area,
+            (small_width, small_height),
+            interpolation=cv2.INTER_LINEAR
+        )
+
+        pixelated_area = cv2.resize(
+            small_area,
+            (w, h),
+            interpolation=cv2.INTER_NEAREST
+        )
+
+        img[y:y + h, x:x + w] = pixelated_area
+
+        return img
+
+class ContrastEffect(ImageEffect):
+    """
+    This class applies a contrast change to a selected image area
+    """
+
+    def apply(self, img, area):
+        """
+        This method increases the contrast of the selected image area.
+
+        :param img: Image that will be modified
+        :param area: The selected difference area containing x, y, width, and height
+        :return: Modified image
+        """
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
+
+        selected_area = img[y:y + h, x:x + w]
+
+        contrast_area = cv2.convertScaleAbs(
+            selected_area,
+            alpha=CONTRAST_EFFECT_ALPHA,
+            beta=CONTRAST_EFFECT_BETA
+        )
+
+        img[y:y + h, x:x + w] = contrast_area
+
         return img

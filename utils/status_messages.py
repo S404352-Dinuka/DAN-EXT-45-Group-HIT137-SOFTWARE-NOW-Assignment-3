@@ -114,7 +114,7 @@ class LayoutText(Enum):
     ORIGINAL_IMAGE_PLACEHOLDER = "Original image will appear here"
     MODIFIED_IMAGE_PLACEHOLDER = "Click the image to find differences"
 
-class AlterationType(Enum):
+class ImageEffectType(Enum):
     """
     This enum stores the image alteration type names used by the image modifier
     """
@@ -123,6 +123,8 @@ class AlterationType(Enum):
     COLOUR_SHIFT = "colour_shift"
     BRIGHTNESS = "brightness"
     GREY_SHIFT = "grey_shift"
+    PIXELATE = "pixelate"
+    CONTRAST = "contrast"
 
 class TkinterEvent(Enum):
     """
