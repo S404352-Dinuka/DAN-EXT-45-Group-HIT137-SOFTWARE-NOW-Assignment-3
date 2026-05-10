@@ -6,7 +6,7 @@ import cv2
 from utils.constants import (
     BLUR_KERNEL_SIZE,
     BRIGHTNESS_CHANGE_BETA,
-    COLOUR_CHANGE_BLUE_INCREMENT,
+    COLOUR_CHANGE_INCREMENT,
 )
 
 
@@ -42,7 +42,7 @@ class ColourEffect(ImageEffect):
         This method changes the color of the selected image area
 
         :param img: image that will be modified
-        :param area:elected difference area containing x, y, width, and height
+        :param area: selected difference area containing x, y, width, and height
         :return:modified image
         """
         x = area.x
@@ -51,7 +51,18 @@ class ColourEffect(ImageEffect):
         h = area.height
 
         new_area = img[y:y + h, x:x + w]
-        new_area[:, :, 0] = cv2.add(new_area[:, :, 0], COLOUR_CHANGE_BLUE_INCREMENT)
+        avg_color = cv2.mean(new_area)
+        avg_blue = avg_color[0]
+        avg_green = avg_color[1]
+        avg_red = avg_color[2]
+
+        if avg_green > avg_blue and avg_green > avg_red:
+            new_area[:, :, 0] = cv2.add(new_area[:, :, 0], COLOUR_CHANGE_INCREMENT)
+        elif avg_red > avg_green and avg_red > avg_blue:
+            new_area[:, :, 1] = cv2.add(new_area[:, :, 1], COLOUR_CHANGE_INCREMENT)
+        else:
+            new_area[:, :, 2] = cv2.add(new_area[:, :, 2], COLOUR_CHANGE_INCREMENT)
+
         img[y:y+h, x:x+w] = new_area
         return img
 
@@ -75,7 +86,8 @@ class BlurEffect(ImageEffect):
         h = area.height
 
         new_area = img[y:y + h, x:x + w]
-        blur_area = cv2.GaussianBlur(new_area, (BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE), 0)
+        enchanced_area = cv2.convertScaleAbs(new_area, alpha=1.0, beta=35)
+        blur_area = cv2.GaussianBlur(enchanced_area, (BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE), 0)
         img[y:y+h, x:x+w] = blur_area
         return img
 
