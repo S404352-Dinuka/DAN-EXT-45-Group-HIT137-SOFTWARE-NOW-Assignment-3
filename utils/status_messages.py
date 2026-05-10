@@ -1,15 +1,12 @@
 """
-This module stores status messages shown in the application.
-
-Using an enum keeps the status text consistent across the application
-and avoids repeating the same message strings in multiple places.
+This module stores status messages shown in the application
 """
 
 from enum import Enum
 
 class GameStatus(Enum):
     """
-    This enum stores the possible result statuses for game actions.
+    This enum stores the possible result statuses for game actions
     """
 
     NO_IMAGE = "no_image"
@@ -24,7 +21,7 @@ class GameStatus(Enum):
 
 class StatusMessage(Enum):
     """
-    This enum stores the user-facing status messages shown in the GUI.
+    This enum stores the user-facing status messages shown in the GUI
     """
 
     ROUND_LOCKED = "This round is finished. Load a new image to continue."
@@ -44,7 +41,7 @@ class StatusMessage(Enum):
 
 class DialogTitle(Enum):
     """
-    This enum stores titles used in file dialogs and message boxes.
+    This enum stores titles used in file dialogs and message boxes
     """
 
     CHOOSE_IMAGE = "Choose an image"
@@ -57,7 +54,7 @@ class DialogTitle(Enum):
 
 class ImageFileExtension(Enum):
     """
-    This enum stores supported image file extensions.
+    This enum stores supported image file extensions
     """
 
     JPG = ".jpg"
@@ -67,7 +64,7 @@ class ImageFileExtension(Enum):
 
 class FileTypeOption(Enum):
     """
-    This enum stores file type options used in the image file dialog.
+    This enum stores file type options used in the image file dialog
     """
 
     SUPPORTED_IMAGES = ("Supported image files", "*.jpg *.jpeg *.png *.bmp")
@@ -79,7 +76,7 @@ class FileTypeOption(Enum):
 
 class InfoLabelTemplate(Enum):
     """
-    This enum stores text templates used for game information labels.
+    This enum stores text templates used for game information labels
     """
 
     REMAINING = "Remaining: {remaining}"
@@ -89,7 +86,7 @@ class InfoLabelTemplate(Enum):
 
 class ErrorMessageTemplate(Enum):
     """
-    This enum stores error message templates that include dynamic values.
+    This enum stores error message templates that include dynamic values
     """
 
     CLICK_ERROR = "Something went wrong while checking the click: {error}"
@@ -98,7 +95,7 @@ class ErrorMessageTemplate(Enum):
 
 class LayoutText(Enum):
     """
-    This enum stores text values used in the Tkinter layout.
+    This enum stores text values used in the Tkinter layout
     """
 
     APP_HEADER_TITLE = "Spot the Difference"
@@ -119,7 +116,7 @@ class LayoutText(Enum):
 
 class AlterationType(Enum):
     """
-    This enum stores the image alteration type names used by the image modifier.
+    This enum stores the image alteration type names used by the image modifier
     """
 
     BLUR = "blur"
@@ -129,7 +126,7 @@ class AlterationType(Enum):
 
 class TkinterEvent(Enum):
     """
-    This enum stores Tkinter event binding strings.
+    This enum stores Tkinter event binding strings
     """
 
     MOUSE_ENTER = "<Enter>"
@@ -139,7 +136,7 @@ class TkinterEvent(Enum):
 
 class TkinterOption(Enum):
     """
-    This enum stores Tkinter option string values.
+    This enum stores Tkinter option string values
     """
 
     WEST_ANCHOR = "w"

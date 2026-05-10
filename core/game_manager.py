@@ -9,10 +9,6 @@ from utils.status_messages import GameStatus,StatusMessage
 class GameManager:
     """
     This class manages the main game state and game rules
-
-    It stores the current images, hidden differences, scores, mistakes,
-    and round lock status. It also validates player clicks and reveals
-    remaining differences when required
     """
 
     def __init__(self):
@@ -34,38 +30,39 @@ class GameManager:
     def reset_and_load_new_image(self, original_image, modified_image, differences_list, img_path):
         """
         This method starts a new round with a newly loaded image
-        It stores the original image, modified image, difference list, and image path.
-        It also resets the round score and mistake count, and unlocks the round for the player
 
-        :param original_image: The original image loaded for the game.
-        :param modified_image: The modified image that contains hidden differences.
-        :param differences_list: The list of difference regions for the current round.
-        :param img_path: The file path of the selected image.
+        :param original_image:Original image loaded of the game
+        :param modified_image: Modified image with hidden differences
+        :param differences_list:List of difference regions
+        :param img_path:File path of the image
         """
-        #TODO :: Need to Implement
+        self.original_image = original_image
+        self.modified_image = modified_image
+        self.differences = differences_list
+        self.image_path = img_path
+        self.round_score = 0
+        self.mistakes = 0
+        self.round_locked = False
 
     def get_remaining_differences_count(self):
         """
         This method returns how many differences have not been found or revealed yet
 
-        :return: The number of unresolved differences remaining in the current round
+        :return:Number of unresolved differences remaining
         """
         remaining_count = 0
-        # TODO :: Need to Implement
+        for diff in self.differences:
+            if not diff.is_difference_resolved():
+                remaining_count = remaining_count + 1
         return remaining_count
-
 
     def validate_click(self, click_cord_x, click_cord_y):
         """
         This method checks a player's click and returns a result status with a message
 
-        It checks whether an image is loaded, whether the round is locked,
-        whether the clicked difference was already found, whether the player
-        clicked a new unresolved difference, or whether the click is incorrect
-
-        :param click_cord_x: The x coordinate of the player's click.
-        :param click_cord_y: The y coordinate of the player's click.
-        :return: A GameStatus value and a related user-facing message.
+        :param click_cord_x:x coordinate of the player's clicked point
+        :param click_cord_y:y coordinate of the player's click point
+        :return:GameStatus value and a related message
         """
         if self.original_image is None:
             return GameStatus.NO_IMAGE, StatusMessage.PLEASE_LOAD_IMAGE_FIRST.value
@@ -97,7 +94,7 @@ class GameManager:
 
             if self.get_remaining_differences_count() == 0:
                 self.round_locked = True
-                return GameStatus.ROUND_COMPLETE, StatusMessage.ALREADY_FOUND.value
+                return GameStatus.ROUND_COMPLETE, StatusMessage.ROUND_COMPLETE.value
 
             return GameStatus.DIFFERENCE_FOUND, StatusMessage.DIFFERENCE_FOUND.value
 
@@ -113,11 +110,7 @@ class GameManager:
         """
         This method reveals all remaining differences and locks the current round
 
-        If no image is loaded, it returns a no-image status
-        If there are no remaining differences, it locks the round and returns a message
-        Otherwise, it marks all unfound differences as revealed and locks the round
-
-        :return: A GameStatus value and a related user facing message.
+        :return: GameStatus value and a related message
         """
         if self.original_image is None:
             status = GameStatus.NO_IMAGE, StatusMessage.PLEASE_LOAD_IMAGE_FIRST.value

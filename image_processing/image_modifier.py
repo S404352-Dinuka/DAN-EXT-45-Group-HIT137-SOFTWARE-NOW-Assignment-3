@@ -1,15 +1,13 @@
 """
 This module contains the image modification logic for the game
-It creates random non overlapping difference areas, applies different
-OpenCV-based alterations to those areas, and stores the generated difference regions for click detection
 """
 
 import random
 import cv2
-from image_processing.alterations import Color_Change
-from image_processing.alterations import Blur_Change
-from image_processing.alterations import Change_Brightness
-from image_processing.alterations import Change_GreyScale
+from image_processing.image_effect import ColourEffect
+from image_processing.image_effect import BlurEffect
+from image_processing.image_effect import BrightnessEffect
+from image_processing.image_effect import GreyscaleEffect
 from core.difference import Difference
 from utils.status_messages import AlterationType
 from utils.constants import (
@@ -21,15 +19,11 @@ from utils.constants import (
 class ImageModifiier:
     """
     This class creates the modified version of the selected image
-    It generates random difference areas, checks that they do not overlap,
-    applies different alteration types, and stores the final difference list.
     """
 
     def __init__(self):
         """
         This method initializes the image modifier with default alteration values
-        It stores the number of differences, the list of created differences,
-        the available alteration types, and the alteration objects.
         """
         self.count_diff = NUMBER_OF_DIFFERENCES
         self.diff = []
@@ -39,17 +33,17 @@ class ImageModifiier:
             AlterationType.BRIGHTNESS.value,
             AlterationType.GREY_SHIFT.value
         ]
-        self.color_change = Color_Change()
-        self.blur_change = Blur_Change()
-        self.change_brightness = Change_Brightness()
-        self.change_greyscale = Change_GreyScale()
+        self.color_effect = ColourEffect()
+        self.blur_effect = BlurEffect()
+        self.brightness_effect = BrightnessEffect()
+        self.greyscale_effect = GreyscaleEffect()
 
     def copy_img(self, img):
         """
         This method creates a copy of the original image and applies alterations to it
 
-        :param img: The original OpenCV image
-        :return: The altered copy of the original image
+        :param img: original image
+        :return: altered copy of the original image
         """
         altered_img = img.copy()
         self.create_alterations(altered_img)
@@ -59,12 +53,9 @@ class ImageModifiier:
     def create_alterations(self, img):
         """
         This method creates random difference areas inside the image
-        It generates random area sizes, positions, and alteration types
-        It continues until the required number of non-overlapping difference
-        areas has been created
 
-        :param img: The OpenCV image used to calculate valid difference areas.
-        :return: The list of generated difference areas.
+        :param img: image used to calculate valid difference areas
+        :return: list of generated difference areas
         """
         img_heignt, img_width = self.img_dimensions(img)
         self.diff = []
@@ -101,7 +92,7 @@ class ImageModifiier:
         """
         This method checks whether a new difference area overlaps with an existing area
 
-        :param new_area: The newly created difference area that needs to be checked
+        :param new_area: created difference area that needs to be checked
         :return: True if the new area overlaps with an existing area, otherwise False
         """
         for area in self.diff:
@@ -126,31 +117,28 @@ class ImageModifiier:
         """
         This method applies the selected alteration type to each difference area
 
-        It checks the alteration name stored in each difference area and applies
-        the matching OpenCV alteration to the image
-
-        :param img: The OpenCV image that will be altered
-        :return: The OpenCV image after all alterations have been applied
+        :param img: image that will be altered
+        :return: image after all alterations have been applied
         """
         for area in self.diff:
             if area.alteration_name == AlterationType.BLUR.value:
-                img = self.blur_change.apply(img, area)
+                img = self.blur_effect.apply(img, area)
 
             elif area.alteration_name == AlterationType.COLOUR_SHIFT.value:
-                img = self.color_change.apply(img, area)
+                img = self.color_effect.apply(img, area)
 
             elif area.alteration_name == AlterationType.BRIGHTNESS.value:
-                img = self.change_brightness.apply(img, area)
+                img = self.brightness_effect.apply(img, area)
 
             elif area.alteration_name == AlterationType.GREY_SHIFT.value:
-                img = self.change_greyscale.apply(img, area)
+                img = self.greyscale_effect.apply(img, area)
         return img
 
     def get_alterations(self):
         """
         This method returns the list of generated difference areas
 
-        :return: The list of difference areas created for the current image
+        :return: list of difference areas created for the current image
         """
         return self.diff
 
@@ -158,19 +146,9 @@ class ImageModifiier:
         """
         This method returns the height and width of the image
 
-        :param img: The OpenCV image
-        :return: The image height and width
+        :param img: OpenCV image
+        :return: image height and width
         """
         height = img.shape[0]
         width = img.shape[1]
         return height, width
-
-    def convert_to_rgb(self, img):
-        """
-        This method converts an OpenCV image from BGR format to RGB format
-
-        :param img: The OpenCV image in BGR color format.
-        :return: The converted image in RGB color format.
-        """
-        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        return rgb_img

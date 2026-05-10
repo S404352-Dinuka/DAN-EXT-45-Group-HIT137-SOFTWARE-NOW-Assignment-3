@@ -42,14 +42,13 @@ from utils.status_messages import (
 class SpotTheDifferenceApplication:
     """
     This class controls the main Spot the Difference application
-    It connects the Tkinter GUI, image loading, image modification, game logic, and image display helper classes
     """
 
     def __init__(self, root):
         """
-        This method initializes the main application.
+        This method initializes the main application
 
-        :param root: The main Tkinter root window.
+        :param root: The main Tkinter root window
         """
         self.root = root
         self.root.title(APP_TITLE)
@@ -76,9 +75,8 @@ class SpotTheDifferenceApplication:
     def calculate_maximum_display_width(self):
         """
         This method calculates a suitable maximum width for each image
-        It uses half of the available screen width because two images are shown side by side
 
-        :return: The calculated maximum display width for each image.
+        :return: Calculated maximum display width
         """
         screen_width_pixels = self.root.winfo_screenwidth()
         available_width_per_image = (screen_width_pixels - SCREEN_WIDTH_RESERVED_SPACE) // 2
@@ -91,9 +89,8 @@ class SpotTheDifferenceApplication:
     def calculate_maximum_display_height(self):
         """
         This method calculates a suitable maximum height for the displayed images
-        It leaves space for the buttons, labels, and status message at the top
 
-        :return: The calculated maximum display height for the images
+        :return: The calculated maximum display height
         """
         screen_height_pixels = self.root.winfo_screenheight()
         available_height_for_images = screen_height_pixels - SCREEN_HEIGHT_RESERVED_SPACE
@@ -108,7 +105,6 @@ class SpotTheDifferenceApplication:
     def setup_image_display_size(self):
         """
         This method sets the maximum display width and height for the images
-        It uses separate helper methods to calculate the width and height values
         """
         self.max_image_width = self.calculate_maximum_display_width()
         self.max_image_height = self.calculate_maximum_display_height()
@@ -162,11 +158,9 @@ class SpotTheDifferenceApplication:
 
     def get_available_image_display_size(self):
         """
-        This method gets the actual available image display size from the GUI.
-        It checks the size of both image display areas and returns the smallest available width and height
-        so both images can be displayed consistently.
+        This method gets the actual available image display size from the GUI
 
-        :return: The available display width and height for the images.
+        :return: The available display width and height of the images
         """
         self.root.update_idletasks()
 
@@ -198,10 +192,10 @@ class SpotTheDifferenceApplication:
 
     def get_original_click_coordinates(self, event):
         """
-        This method converts click coordinates on the displayed image back to original image coordinates
+        This method converts click coordinates on the displayed image to original image coordinates
 
-        :param event: The Tkinter mouse click event from the modified image label
-        :return: The original image x and y coordinates, or None values if the click is invalid
+        :param event: The Tkinter mouse click event
+        :return: Original image x and y coordinates, or None values if the click is invalid
         """
         if self.modified_photo is None:
             return None, None
@@ -226,10 +220,8 @@ class SpotTheDifferenceApplication:
     def on_modified_image_click(self, event):
         """
         This method handles player clicks inside the modified image
-        It converts the click location to original image coordinates and
-        validates the click using the game manager, and updates the display.
 
-        :param event: The Tkinter mouse click event from the modified image label
+        :param event: The Tkinter mouse click event
         """
         if self.game_manager.modified_image is None:
             self.update_layout_status_text(StatusMessage.PLEASE_LOAD_IMAGE_FIRST)
@@ -303,8 +295,6 @@ class SpotTheDifferenceApplication:
     def refresh_images(self):
         """
         This method refreshes both displayed images after loading, finding, or revealing differences
-        It draws difference circles, prepares the images for Tkinter display,
-        and updates the original and modified image labels.
         """
         if self.game_manager.original_image is None:
             return
@@ -387,7 +377,6 @@ class SpotTheDifferenceApplication:
     def update_layout_status_text(self, status_message):
         """
         This method updates the status message shown in the GUI
-        It accepts either a StatusMessage enum value or a normal string
 
         :param status_message: The status message to show in the GUI
         """

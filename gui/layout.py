@@ -1,5 +1,5 @@
 """
-This module contains the Tkinter layout for the Spot the Difference game.
+This module contains the Tkinter layout for the Spot the Difference game
 """
 
 import tkinter as tk
@@ -63,10 +63,7 @@ from utils.status_messages import (
 
 class MainLayout:
     """
-    This class creates and manages the main Tkinter user interface.
-
-    It builds the header, control panel, status label, and image display
-    sections used by the Spot the Difference game.
+    This class creates and manages the main Tkinter user interface
     """
 
     def __init__(self, root, load_command, reveal_command, click_command):
@@ -104,9 +101,8 @@ class MainLayout:
     def create_header(self, parent_frame):
         """
         This method creates the application header section.
-        It adds the game title and subtitle to the given parent frame.
 
-        :param parent_frame: The frame where the header section will be placed.
+        :param parent_frame: The frame of the header section
         """
         header_frame = tk.Frame(
             parent_frame,
@@ -140,10 +136,9 @@ class MainLayout:
 
     def create_control_panel(self, parent_frame):
         """
-        This method creates the main control panel.
-        It adds the image action buttons and the game statistic cards.
+        This method creates the main control panel
 
-        :param parent_frame: The frame where the control panel will be placed.
+        :param parent_frame: The frame of the control panel
         """
         panel_frame = tk.Frame(
             parent_frame,
@@ -209,12 +204,12 @@ class MainLayout:
         """
         This method creates a styled button with a hover effect.
 
-        :param parent_frame: The frame where the button will be placed.
-        :param text: The text displayed on the button.
+        :param parent_frame: The frame of the button
+        :param text: The text displayed on the button
         :param command: The function that runs when the button is clicked.
-        :param normal_colour: The default background colour of the button.
-        :param hover_colour: The background colour used when the mouse is over the button.
-        :return: A configured Tkinter Button widget.
+        :param normal_colour: The default background color of the button
+        :param hover_colour: The background color used when the mouse is over the button
+        :return: A configured Tkinter Button widget
         """
         button = tk.Button(
             parent_frame,
@@ -245,11 +240,10 @@ class MainLayout:
     def create_stat_card(self, parent_frame, title, text_variable):
         """
         This method creates a small statistic card.
-        It displays a statistic title and its related value.
 
-        :param parent_frame: The frame where the statistic card will be placed.
-        :param title: The title shown at the top of the card.
-        :param text_variable: The Tkinter StringVar used to display the statistic value.
+        :param parent_frame: The frame of the statistic card
+        :param title: Title shown at the top of the card
+        :param text_variable: Tkinter StringVar used to display the statistic value
         """
         card_frame = tk.Frame(
             parent_frame,
@@ -285,9 +279,8 @@ class MainLayout:
     def create_status_label(self, parent_frame):
         """
         This method creates the status message area.
-        It displays game messages inside a highlighted status bar.
 
-        :param parent_frame: The frame where the status message area will be placed.
+        :param parent_frame: The frame of the status message
         """
         status_frame = tk.Frame(
             parent_frame,
@@ -323,9 +316,8 @@ class MainLayout:
     def create_image_section(self, parent_frame):
         """
         This method creates the image display section.
-        It adds separate cards for the original image and the modified image.
 
-        :param parent_frame: The frame where the image section will be placed.
+        :param parent_frame: The frame of the image section
         """
         images_frame = tk.Frame(
             parent_frame,
@@ -352,10 +344,10 @@ class MainLayout:
         """
         This method creates an image display card with a title and placeholder label.
 
-        :param parent_frame: The frame where the image card will be placed.
-        :param title: The title shown at the top of the image card.
-        :param placeholder_text: The text displayed before an image is loaded.
-        :return: The image area frame and the image label inside it.
+        :param parent_frame: The frame of the image card
+        :param title: Title shown at the top of the image card
+        :param placeholder_text: Text displayed before an image is loaded.
+        :return: Image area frame and the image label inside it
         """
         card_frame = tk.Frame(
             parent_frame,
