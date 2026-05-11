@@ -35,8 +35,16 @@ def calculate_difference_circle_radius(difference):
     :param difference:Difference region containing width and height values
     :return: The calculated circle radius
     """
-    circle_radius = (
-        max(difference.width, difference.height) // 2
+    half_width = difference.width / 2
+    half_height = difference.height / 2
+
+    corner_distance_from_center = (
+        half_width * half_width
+        + half_height * half_height
+    ) ** 0.5
+
+    circle_radius = int(
+        corner_distance_from_center
         + DIFFERENCE_CIRCLE_EXTRA_RADIUS
     )
 

@@ -6,16 +6,16 @@ import cv2
 from utils.constants import (
     BLUR_KERNEL_SIZE,
     BRIGHTNESS_CHANGE_BETA,
+    BRIGHTNESS_EFFECT_BLEND_WEIGHT,
     PIXELATE_SCALE_DOWN_FACTOR,
-    HUE_SHIFT_VALUE,
-    SATURATION_SHIFT_VALUE,
-    BLUR_EDGE_THRESHOLD_HIGH,
-    BLUR_EDGE_THRESHOLD_LOW,
-    MIN_BLUR_EDGE_DENSITY,
-    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE,
-    PLAIN_REGION_BRIGHTNESS_THRESHOLD,
+    PIXELATE_VISIBILITY_ALPHA,
+    PIXELATE_VISIBILITY_BETA,
     CONTRAST_EFFECT_ALPHA,
     CONTRAST_EFFECT_BETA,
+    COLOUR_EFFECT_BLEND_WEIGHT,
+    COLOUR_HUE_SHIFT_VALUE,
+    COLOUR_SATURATION_SHIFT_VALUE,
+    GREYSCALE_EFFECT_BLEND_WEIGHT
 )
 
 class ImageEffect:
@@ -57,22 +57,30 @@ class ColourEffect(ImageEffect):
         w = area.width
         h = area.height
 
-        selected_area = img[y:y + h, x:x + w]
+        original_area = img[y:y + h, x:x + w].copy()
 
-        hsv_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2HSV)
+        hsv_area = cv2.cvtColor(original_area, cv2.COLOR_BGR2HSV)
 
         hue_channel = hsv_area[:, :, 0].astype("int16")
-        shifted_hue_channel = (hue_channel + HUE_SHIFT_VALUE) % 180
+        shifted_hue_channel = (hue_channel + COLOUR_HUE_SHIFT_VALUE) % 180
         hsv_area[:, :, 0] = shifted_hue_channel.astype("uint8")
 
         hsv_area[:, :, 1] = cv2.add(
             hsv_area[:, :, 1],
-            SATURATION_SHIFT_VALUE
+            COLOUR_SATURATION_SHIFT_VALUE
         )
 
         changed_area = cv2.cvtColor(hsv_area, cv2.COLOR_HSV2BGR)
 
-        img[y:y + h, x:x + w] = changed_area
+        blended_area = cv2.addWeighted(
+            original_area,
+            1 - COLOUR_EFFECT_BLEND_WEIGHT,
+            changed_area,
+            COLOUR_EFFECT_BLEND_WEIGHT,
+            0
+        )
+
+        img[y:y + h, x:x + w] = blended_area
 
         return img
 
@@ -96,33 +104,11 @@ class BlurEffect(ImageEffect):
 
         selected_area = img[y:y + h, x:x + w]
 
-        grey_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2GRAY)
-
-        edge_image = cv2.Canny(
-            grey_area,
-            BLUR_EDGE_THRESHOLD_LOW,
-            BLUR_EDGE_THRESHOLD_HIGH
-        )
-
-        edge_density = cv2.countNonZero(edge_image) / edge_image.size
-
         blurred_area = cv2.GaussianBlur(
             selected_area,
             (BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE),
             0
         )
-
-        if edge_density < MIN_BLUR_EDGE_DENSITY:
-            if blurred_area.mean() > PLAIN_REGION_BRIGHTNESS_THRESHOLD:
-                blurred_area = cv2.subtract(
-                    blurred_area,
-                    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE
-                )
-            else:
-                blurred_area = cv2.add(
-                    blurred_area,
-                    PLAIN_REGION_BLUR_BRIGHTNESS_CHANGE
-                )
 
         img[y:y + h, x:x + w] = blurred_area
 
@@ -146,9 +132,24 @@ class BrightnessEffect(ImageEffect):
         w = area.width
         h = area.height
 
-        new_area = img[y:y + h, x:x + w]
-        bright_area = cv2.convertScaleAbs(new_area, alpha=1.0, beta=BRIGHTNESS_CHANGE_BETA)
-        img[y:y+h, x:x+w] = bright_area
+        original_area = img[y:y + h, x:x + w].copy()
+
+        bright_area = cv2.convertScaleAbs(
+            original_area,
+            alpha=1.0,
+            beta=BRIGHTNESS_CHANGE_BETA
+        )
+
+        blended_area = cv2.addWeighted(
+            original_area,
+            1 - BRIGHTNESS_EFFECT_BLEND_WEIGHT,
+            bright_area,
+            BRIGHTNESS_EFFECT_BLEND_WEIGHT,
+            0
+        )
+
+        img[y:y + h, x:x + w] = blended_area
+
         return img
 
 class GreyscaleEffect(ImageEffect):
@@ -169,10 +170,20 @@ class GreyscaleEffect(ImageEffect):
         w = area.width
         h = area.height
 
-        new_area = img[y:y + h, x:x + w]
-        grey_area = cv2.cvtColor(new_area, cv2.COLOR_BGR2GRAY)
+        original_area = img[y:y + h, x:x + w].copy()
+
+        grey_area = cv2.cvtColor(original_area, cv2.COLOR_BGR2GRAY)
         grey_area_bgr = cv2.cvtColor(grey_area, cv2.COLOR_GRAY2BGR)
-        img[y:y+h, x:x+w] = grey_area_bgr
+
+        blended_area = cv2.addWeighted(
+            original_area,
+            1 - GREYSCALE_EFFECT_BLEND_WEIGHT,
+            grey_area_bgr,
+            GREYSCALE_EFFECT_BLEND_WEIGHT,
+            0
+        )
+
+        img[y:y + h, x:x + w] = blended_area
         return img
 
 class PixelateEffect(ImageEffect):
@@ -201,13 +212,19 @@ class PixelateEffect(ImageEffect):
         small_area = cv2.resize(
             selected_area,
             (small_width, small_height),
-            interpolation=cv2.INTER_LINEAR
+            interpolation=cv2.INTER_AREA
         )
 
         pixelated_area = cv2.resize(
             small_area,
             (w, h),
             interpolation=cv2.INTER_NEAREST
+        )
+
+        pixelated_area = cv2.convertScaleAbs(
+            pixelated_area,
+            alpha=PIXELATE_VISIBILITY_ALPHA,
+            beta=PIXELATE_VISIBILITY_BETA
         )
 
         img[y:y + h, x:x + w] = pixelated_area

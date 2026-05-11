@@ -14,11 +14,16 @@ from core.difference import Difference
 from utils.status_messages import ImageEffectType
 from utils.helpers import calculate_difference_circle_radius
 from utils.constants import (
-    MAX_DIFFERENCE_AREA_SIZE_DIVISOR,
-    MIN_DIFFERENCE_AREA_SIZE_DIVISOR,
     NUMBER_OF_DIFFERENCES,
-    MIN_REGION_DETAIL_SCORE,
-    DIFFERENCE_CIRCLE_MIN_GAP
+    BLUR_EDGE_THRESHOLD_HIGH,
+    BLUR_EDGE_THRESHOLD_LOW,
+    MIN_BLUR_EDGE_DENSITY,
+    DIFFERENCE_CIRCLE_MIN_GAP,
+    CANDIDATE_GRID_COLUMNS,
+    CANDIDATE_GRID_ROWS,
+    CANDIDATE_AREA_MIN_SCALE,
+    CANDIDATE_AREA_MAX_SCALE,
+    MIN_REGION_DETAIL_SCORE
 )
 
 class ModifiedImageBuilder:
@@ -61,43 +66,221 @@ class ModifiedImageBuilder:
 
     def create_alterations(self, img):
         """
-        This method creates random difference areas inside the image
+        Creates difference areas
 
-        :param img: image used to calculate valid difference areas
-        :return: list of generated difference areas
+        :param img:OpenCV image used to calculate valid difference areas
+        :return:List of generated difference areas
         """
-        img_heignt, img_width = self.img_dimensions(img)
+        img_height, img_width = self.img_dimensions(img)
         self.diff = []
 
-        while len(self.diff) < self.count_diff:
-            area_width = random.randint(
-                img_width // MIN_DIFFERENCE_AREA_SIZE_DIVISOR,
-                img_width // MAX_DIFFERENCE_AREA_SIZE_DIVISOR
-            )
-            area_height = random.randint(
-                img_heignt // MIN_DIFFERENCE_AREA_SIZE_DIVISOR,
-                img_heignt // MAX_DIFFERENCE_AREA_SIZE_DIVISOR
-            )
-            area_x = random.randint(0, (img_width - area_width))
-            area_y = random.randint(0, (img_heignt - area_height))
-            area_type_no = random.randint(0, len(self.diff_types) - 1)
-            area_type = self.diff_types[area_type_no]
-            new_area = Difference(
-                x=area_x,
-                y=area_y,
-                width=area_width,
-                height=area_height,
-                alteration_name=area_type,
-                found=False
+        candidate_areas = self.create_candidate_areas(img_width, img_height)
+
+        candidate_areas = [
+            area for area in candidate_areas
+            if self.has_enough_visual_detail(img, area)
+        ]
+
+        if len(candidate_areas) == 0:
+            candidate_areas = self.create_candidate_areas(img_width, img_height)
+
+        blur_area = self.get_best_blur_area(img, candidate_areas)
+
+        if blur_area is not None:
+            blur_area.alteration_name = ImageEffectType.BLUR.value
+            self.diff.append(blur_area)
+
+            candidate_areas = [
+                area for area in candidate_areas if area is not blur_area
+            ]
+
+            candidate_areas = self.remove_overlapping_candidate_areas(candidate_areas)
+
+        pixelate_area = self.get_suitable_area_for_effect(
+            img,
+            candidate_areas,
+            ImageEffectType.PIXELATE.value
+        )
+
+        if pixelate_area is not None:
+            pixelate_area.alteration_name = ImageEffectType.PIXELATE.value
+            self.diff.append(pixelate_area)
+
+            candidate_areas = [
+                area for area in candidate_areas if area is not pixelate_area
+            ]
+
+            candidate_areas = self.remove_overlapping_candidate_areas(candidate_areas)
+
+        remaining_effect_types = [
+            ImageEffectType.COLOUR_SHIFT.value,
+            ImageEffectType.BRIGHTNESS.value,
+            ImageEffectType.GREY_SHIFT.value,
+            ImageEffectType.CONTRAST.value
+        ]
+
+        random.shuffle(remaining_effect_types)
+
+        for effect_type in remaining_effect_types:
+            if len(self.diff) >= self.count_diff:
+                break
+
+            selected_area = self.get_suitable_area_for_effect(
+                img,
+                candidate_areas,
+                effect_type
             )
 
-            check_overlap = self.check_area_overlap(new_area)
-            has_detail = self.has_enough_visual_detail(img, new_area)
+            if selected_area is None:
+                continue
 
-            if not check_overlap and has_detail:
-                self.diff.append(new_area)
+            selected_area.alteration_name = effect_type
+            self.diff.append(selected_area)
+
+            candidate_areas = [
+                area for area in candidate_areas if area is not selected_area
+            ]
+
+            candidate_areas = self.remove_overlapping_candidate_areas(candidate_areas)
 
         return self.diff
+    def apply_alterations(self, img):
+        """
+        This method applies the selected alteration type to each difference area
+
+        :param img: image that will be altered
+        :return: image after all alterations have been applied
+        """
+        for area in self.diff:
+            if area.alteration_name == ImageEffectType.BLUR.value:
+                img = self.blur_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.COLOUR_SHIFT.value:
+                img = self.color_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.BRIGHTNESS.value:
+                img = self.brightness_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.GREY_SHIFT.value:
+                img = self.greyscale_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.PIXELATE.value:
+                img = self.pixelate_effect.apply(img, area)
+
+            elif area.alteration_name == ImageEffectType.CONTRAST.value:
+                img = self.contrast_effect.apply(img, area)
+        return img
+
+    def get_alterations(self):
+        """
+        This method returns the list of generated difference areas
+
+        :return: list of difference areas created for the current image
+        """
+        return self.diff
+
+    def img_dimensions(self, img):
+        """
+        This method returns the height and width of the image
+
+        :param img: OpenCV image
+        :return: image height and width
+        """
+        height = img.shape[0]
+        width = img.shape[1]
+        return height, width
+
+    def get_edge_density(self, img, area):
+        """
+        Calculates the edge density of the selected image area
+
+        :param img: Image that will be checked
+        :param area: Selected difference area
+        :return: Edge density value of the selected area
+        """
+        selected_area = img[
+            area.y:area.y + area.height,
+            area.x:area.x + area.width
+        ]
+
+        grey_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2GRAY)
+
+        edge_image = cv2.Canny(
+            grey_area,
+            BLUR_EDGE_THRESHOLD_LOW,
+            BLUR_EDGE_THRESHOLD_HIGH
+        )
+
+        edge_density = cv2.countNonZero(edge_image) / edge_image.size
+
+        return edge_density
+
+    def create_candidate_areas(self, img_width, img_height):
+        """
+        Creates fixed candidate areas using a grid
+
+        :param img_width: Width of the image
+        :param img_height: Height of the image
+        :return: List of candidate Difference areas
+        """
+        candidate_areas = []
+
+        cell_width = img_width // CANDIDATE_GRID_COLUMNS
+        cell_height = img_height // CANDIDATE_GRID_ROWS
+
+        for row in range(CANDIDATE_GRID_ROWS):
+            for column in range(CANDIDATE_GRID_COLUMNS):
+                area_width_scale = random.uniform(
+                    CANDIDATE_AREA_MIN_SCALE,
+                    CANDIDATE_AREA_MAX_SCALE
+                )
+
+                area_height_scale = random.uniform(
+                    CANDIDATE_AREA_MIN_SCALE,
+                    CANDIDATE_AREA_MAX_SCALE
+                )
+
+                area_width = int(cell_width * area_width_scale)
+                area_height = int(cell_height * area_height_scale)
+
+                area_x = column * cell_width + (cell_width - area_width) // 2
+                area_y = row * cell_height + (cell_height - area_height) // 2
+
+                candidate_area = Difference(
+                    x=area_x,
+                    y=area_y,
+                    width=area_width,
+                    height=area_height,
+                    alteration_name="",
+                    found=False
+                )
+
+                candidate_areas.append(candidate_area)
+
+        return candidate_areas
+
+    def get_best_blur_area(self, img, candidate_areas):
+        """
+        Selects the candidate area with the highest edge density for blur.
+
+        :param img: Image that will be checked.
+        :param candidate_areas: List of candidate areas.
+        :return: Best blur area if edge density is high enough, otherwise None.
+        """
+        best_area = None
+        highest_edge_density = 0
+
+        for area in candidate_areas:
+            edge_density = self.get_edge_density(img, area)
+
+            if edge_density > highest_edge_density:
+                highest_edge_density = edge_density
+                best_area = area
+
+        if highest_edge_density >= MIN_BLUR_EDGE_DENSITY:
+            return best_area
+
+        return None
 
     def check_area_overlap(self, new_area):
         """
@@ -151,64 +334,84 @@ class ModifiedImageBuilder:
 
         return False
 
-    def apply_alterations(self, img):
+    def remove_overlapping_candidate_areas(self, candidate_areas):
         """
-        This method applies the selected alteration type to each difference area
+        Removes candidate areas that overlap with already selected difference areas
 
-        :param img: image that will be altered
-        :return: image after all alterations have been applied
+        :param candidate_areas: Candidate difference areas
+        :return: Candidate areas that do not overlap with existing selected areas
         """
-        for area in self.diff:
-            if area.alteration_name == ImageEffectType.BLUR.value:
-                img = self.blur_effect.apply(img, area)
+        non_overlapping_areas = []
 
-            elif area.alteration_name == ImageEffectType.COLOUR_SHIFT.value:
-                img = self.color_effect.apply(img, area)
+        for candidate_area in candidate_areas:
+            if not self.check_area_overlap(candidate_area):
+                non_overlapping_areas.append(candidate_area)
 
-            elif area.alteration_name == ImageEffectType.BRIGHTNESS.value:
-                img = self.brightness_effect.apply(img, area)
+        return non_overlapping_areas
 
-            elif area.alteration_name == ImageEffectType.GREY_SHIFT.value:
-                img = self.greyscale_effect.apply(img, area)
-
-            elif area.alteration_name == ImageEffectType.PIXELATE.value:
-                img = self.pixelate_effect.apply(img, area)
-
-            elif area.alteration_name == ImageEffectType.CONTRAST.value:
-                img = self.contrast_effect.apply(img, area)
-        return img
-
-    def get_alterations(self):
+    def has_enough_colour_for_greyscale(self, img, area):
         """
-        This method returns the list of generated difference areas
+        Checks whether the selected area has enough color so the greyscale effect will be visible
 
-        :return: list of difference areas created for the current image
-        """
-        return self.diff
-
-    def img_dimensions(self, img):
-        """
-        This method returns the height and width of the image
-
-        :param img: OpenCV image
-        :return: image height and width
-        """
-        height = img.shape[0]
-        width = img.shape[1]
-        return height, width
-
-    def has_enough_visual_detail(self, img, area):
-        """
-        Checks whether the selected image area has enough texture or colour variation.
-
-        :param img: OpenCV image
-        :param area: Difference area containing x, y, width, and height
-        :return: True if the selected area has enough visual detail, otherwise False
+        :param img: OpenCV image used to check the selected area
+        :param area: Difference area containing x, y, width, and height values
+        :return: True if the selected area has enough color otherwise False
         """
         selected_area = img[
             area.y:area.y + area.height,
             area.x:area.x + area.width
         ]
+
+        if selected_area.size == 0:
+            return False
+
+        hsv_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2HSV)
+        average_saturation = hsv_area[:, :, 1].mean()
+
+        return average_saturation >= 25
+
+    def get_suitable_area_for_effect(self, img, candidate_areas, effect_type):
+        """
+        Returns a suitable candidate area for the given image effect
+
+        :param img: Image used to check the selected area
+        :param candidate_areas: List of available candidate areas
+        :param effect_type: Image effect type to be applied
+        :return: Suitable candidate area if found otherwise None
+        """
+        shuffled_candidates = candidate_areas.copy()
+        random.shuffle(shuffled_candidates)
+
+        for candidate_area in shuffled_candidates:
+            if self.check_area_overlap(candidate_area):
+                continue
+
+            if not self.has_enough_visual_detail(img, candidate_area):
+                continue
+
+            if effect_type == ImageEffectType.GREY_SHIFT.value:
+                if not self.has_enough_colour_for_greyscale(img, candidate_area):
+                    continue
+
+            return candidate_area
+
+        return None
+
+    def has_enough_visual_detail(self, img, area):
+        """
+        Checks whether the selected image area has enough texture or color variation.
+
+        :param img:OpenCV image used to check the selected area
+        :param area:Difference area containing x, y, width, and height values
+        :return:True if the selected area has enough visual detail otherwise False
+        """
+        selected_area = img[
+            area.y:area.y + area.height,
+            area.x:area.x + area.width
+        ]
+
+        if selected_area.size == 0:
+            return False
 
         grey_area = cv2.cvtColor(selected_area, cv2.COLOR_BGR2GRAY)
         detail_score = grey_area.std()
