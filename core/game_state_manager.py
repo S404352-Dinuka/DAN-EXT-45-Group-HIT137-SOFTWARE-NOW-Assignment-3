@@ -6,7 +6,7 @@ from core.difference_click_detector import DifferenceClickDetector
 from utils.constants import CLICK_TOLERANCE, MAX_MISTAKES
 from utils.status_messages import GameStatus,StatusMessage
 
-class GameManager:
+class GameStateManager:
     """
     This class manages the main game state and game rules
     """
@@ -52,7 +52,7 @@ class GameManager:
         """
         remaining_count = 0
         for diff in self.differences:
-            if not diff.is_difference_resolved():
+            if not diff.check_if_difference_resolved():
                 remaining_count = remaining_count + 1
         return remaining_count
 

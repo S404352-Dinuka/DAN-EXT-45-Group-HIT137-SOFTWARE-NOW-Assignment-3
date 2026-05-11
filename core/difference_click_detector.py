@@ -21,7 +21,7 @@ class DifferenceClickDetector:
         for diff in differences_list:
             player_clicked_found_difference = (
                 diff.found
-                and diff.is_click_within_region(click_cord_x, click_cord_y, tolerance)
+                and diff.check_if_click_within_region(click_cord_x, click_cord_y, tolerance)
             )
             if player_clicked_found_difference:
                 return diff
@@ -38,8 +38,8 @@ class DifferenceClickDetector:
         :return: unresolved difference if matched, otherwise None
         """
         for diff in differences_list:
-            difference_is_unresolved = not diff.is_difference_resolved()
-            player_clicked_difference = diff.is_click_within_region(
+            difference_is_unresolved = not diff.check_if_difference_resolved()
+            player_clicked_difference = diff.check_if_click_within_region(
                 click_cord_x,
                 click_cord_y,
                 tolerance

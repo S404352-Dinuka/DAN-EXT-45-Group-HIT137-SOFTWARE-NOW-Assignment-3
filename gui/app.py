@@ -5,11 +5,11 @@ This class connects GUI, image processing, and game logic.
 
 from tkinter import filedialog, messagebox
 
-from core.game_manager import GameManager
+from core.game_state_manager import GameStateManager
 from gui.image_display_helper import ImageDisplayHelper
 from gui.layout import MainLayout
 from image_processing.image_loader import ImageLoader
-from image_processing.image_modifier import ImageModifiier
+from image_processing.modified_image_builder import ModifiedImageBuilder
 from utils.constants import (
     APP_TITLE,
     MAX_DISPLAY_HEIGHT,
@@ -54,12 +54,14 @@ class SpotTheDifferenceApplication:
         self.root.title(APP_TITLE)
         self.root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         self.image_loader = ImageLoader()
-        self.image_modifier = ImageModifiier()
-        self.game_manager = GameManager()
+        self.modified_image_builder = ModifiedImageBuilder()
+        self.game_state_manager = GameStateManager()
         self.image_display_helper = ImageDisplayHelper()
         self.original_photo = None
         self.modified_photo = None
         self.display_scale = DEFAULT_DISPLAY_SCALE
+        self.resize_after_id = None
+        self.last_image_area_size = None
         self.max_image_width = MAX_DISPLAY_WIDTH
         self.max_image_height = MAX_DISPLAY_HEIGHT
         self.setup_image_display_size()
@@ -68,6 +70,15 @@ class SpotTheDifferenceApplication:
             self.load_image,
             self.reveal_differences,
             self.on_modified_image_click
+        )
+        self.layout.original_image_area.bind(
+            "<Configure>",
+            self.on_image_area_resize
+        )
+
+        self.layout.modified_image_area.bind(
+            "<Configure>",
+            self.on_image_area_resize
         )
         self.update_info_labels()
         self.update_layout_status_text(StatusMessage.LOAD_IMAGE_TO_START)
@@ -131,13 +142,13 @@ class SpotTheDifferenceApplication:
         try:
             original_image = self.image_loader.load_img(img_file_path)
 
-            modified_image = self.image_modifier.copy_img(
+            modified_image = self.modified_image_builder.copy_img(
                 original_image
             )
 
-            differences = self.image_modifier.get_alterations()
+            differences = self.modified_image_builder.get_alterations()
 
-            self.game_manager.reset_and_load_new_image(
+            self.game_state_manager.reset_and_load_new_image(
                 original_image,
                 modified_image,
                 differences,
@@ -223,7 +234,7 @@ class SpotTheDifferenceApplication:
 
         :param event: The Tkinter mouse click event
         """
-        if self.game_manager.modified_image is None:
+        if self.game_state_manager.modified_image is None:
             self.update_layout_status_text(StatusMessage.PLEASE_LOAD_IMAGE_FIRST)
             return
 
@@ -234,8 +245,8 @@ class SpotTheDifferenceApplication:
                 self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
                 return
 
-            image_height = self.game_manager.modified_image.shape[0]
-            image_width = self.game_manager.modified_image.shape[1]
+            image_height = self.game_state_manager.modified_image.shape[0]
+            image_width = self.game_state_manager.modified_image.shape[1]
 
             if original_x < 0 or original_y < 0:
                 self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
@@ -245,7 +256,7 @@ class SpotTheDifferenceApplication:
                 self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
                 return
 
-            result, message = self.game_manager.validate_click(original_x, original_y)
+            result, message = self.game_state_manager.validate_click(original_x, original_y)
 
             self.update_layout_status_text(message)
             self.refresh_images()
@@ -274,7 +285,7 @@ class SpotTheDifferenceApplication:
         This method reveals all differences that the player has not found
         """
         try:
-            result, message = self.game_manager.reveal_unfound_differences()
+            result, message = self.game_state_manager.reveal_unfound_differences()
 
             self.update_layout_status_text(message)
             self.refresh_images()
@@ -296,19 +307,20 @@ class SpotTheDifferenceApplication:
         """
         This method refreshes both displayed images after loading, finding, or revealing differences
         """
-        if self.game_manager.original_image is None:
+        if self.game_state_manager.original_image is None:
             return
 
-        if self.game_manager.modified_image is None:
+        if self.game_state_manager.modified_image is None:
             return
 
         original_marked, modified_marked = self.image_display_helper.draw_difference_circles(
-            self.game_manager.original_image,
-            self.game_manager.modified_image,
-            self.game_manager.differences
+            self.game_state_manager.original_image,
+            self.game_state_manager.modified_image,
+            self.game_state_manager.differences
         )
 
         display_width, display_height = self.get_available_image_display_size()
+        self.last_image_area_size = (display_width, display_height)
 
         self.original_photo, original_scale = self.image_display_helper.create_display_image(
             original_marked,
@@ -350,11 +362,11 @@ class SpotTheDifferenceApplication:
         """
         This method updates score, remaining count, and mistake count on screen
         """
-        remaining = self.game_manager.get_remaining_differences_count()
-        mistakes = self.game_manager.mistakes
-        max_mistakes = self.game_manager.max_mistakes
-        round_score = self.game_manager.round_score
-        total_score = self.game_manager.total_score
+        remaining = self.game_state_manager.get_remaining_differences_count()
+        mistakes = self.game_state_manager.mistakes
+        max_mistakes = self.game_state_manager.max_mistakes
+        round_score = self.game_state_manager.round_score
+        total_score = self.game_state_manager.total_score
 
         self.layout.remaining_text.set(
             InfoLabelTemplate.REMAINING.value.format(remaining=remaining)
@@ -384,3 +396,40 @@ class SpotTheDifferenceApplication:
             self.layout.status_text.set(status_message.value)
         else:
             self.layout.status_text.set(status_message)
+
+    def on_image_area_resize(self, event):
+        """
+        This method handles resize events from the image display areas.
+
+        :param event:Tkinter resize event
+        """
+        if self.game_state_manager.original_image is None:
+            return
+
+        if self.game_state_manager.modified_image is None:
+            return
+
+        if self.resize_after_id is not None:
+            self.root.after_cancel(self.resize_after_id)
+
+        self.resize_after_id = self.root.after(
+            200,
+            self.resize_displayed_images
+        )
+
+    def resize_displayed_images(self):
+        """
+        This method refreshes the displayed images after the image area size changes
+
+        :return: None
+        """
+        self.resize_after_id = None
+
+        display_width, display_height = self.get_available_image_display_size()
+        current_image_area_size = (display_width, display_height)
+
+        if current_image_area_size == self.last_image_area_size:
+            return
+
+        self.last_image_area_size = current_image_area_size
+        self.refresh_images()

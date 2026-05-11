@@ -1,6 +1,7 @@
 """
 Helper functions
 """
+from utils.constants import DIFFERENCE_CIRCLE_EXTRA_RADIUS
 
 def get_file_extension(file_path):
     """
@@ -26,3 +27,25 @@ def get_image_size(image):
     height = image.shape[0]
     width = image.shape[1]
     return width, height
+
+def calculate_difference_circle_radius(difference):
+    """
+    Calculates the circle radius used to mark a difference region.
+
+    :param difference:Difference region containing width and height values
+    :return: The calculated circle radius
+    """
+    half_width = difference.width / 2
+    half_height = difference.height / 2
+
+    corner_distance_from_center = (
+        half_width * half_width
+        + half_height * half_height
+    ) ** 0.5
+
+    circle_radius = int(
+        corner_distance_from_center
+        + DIFFERENCE_CIRCLE_EXTRA_RADIUS
+    )
+
+    return circle_radius

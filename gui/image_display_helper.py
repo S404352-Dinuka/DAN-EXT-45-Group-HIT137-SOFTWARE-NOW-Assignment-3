@@ -4,8 +4,8 @@ This module provides image display helper functions for the Tkinter GUI.
 
 import cv2
 from PIL import Image, ImageTk
-
 from utils.constants import FOUND_COLOUR, REVEAL_COLOUR
+from utils.helpers import calculate_difference_circle_radius
 
 class ImageDisplayHelper:
     """
@@ -27,7 +27,7 @@ class ImageDisplayHelper:
             circle_colour = FOUND_COLOUR if difference.found else REVEAL_COLOUR if difference.revealed else None
             if circle_colour is not None:
                 circle_center_x, circle_center_y = difference.get_region_center_point()
-                circle_radius = max(difference.width, difference.height) // 2 + 10
+                circle_radius = calculate_difference_circle_radius(difference)
                 circle_thickness = max(2, circle_radius // 8)
                 cv2.circle(
                     original_image_copy,
