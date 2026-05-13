@@ -109,3 +109,15 @@ Child classes include:
 - `ContrastEffect`
 
 ---
+
+# OOP Concepts Demonstrated
+
+- *Encapsulation* – related data and behaviour are kept inside classes.
+- *Abstraction* – complex logic is hidden behind meaningful methods.
+- *Inheritance* – image effect classes inherit from the base ImageEffect class.
+- *Polymorphism* – each image effect class implements its own apply() method.
+- *Composition* – main classes use objects from other classes.
+- *Dataclass usage* – the Difference model stores difference region data cleanly.
+- *Separation of responsibilities* – GUI, game logic, image processing, and utilities are separated.
+
+---
