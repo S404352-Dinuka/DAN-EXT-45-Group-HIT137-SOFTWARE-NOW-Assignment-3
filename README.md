@@ -121,3 +121,37 @@ Child classes include:
 - *Separation of responsibilities* – GUI, game logic, image processing, and utilities are separated.
 
 ---
+
+# Project Structure
+
+```text
+HIT137-Assignment-3/
+│
+├── main.py
+│
+├── core/
+│   ├── _init_.py
+│   ├── difference.py
+│   ├── difference_click_detector.py
+│   └── game_manager.py
+│
+├── gui/
+│   ├── _init_.py
+│   ├── app.py
+│   ├── layout.py
+│   └── image_display_helper.py
+│
+├── image_processing/
+│   ├── _init_.py
+│   ├── image_loader.py
+│   ├── image_modifier.py
+│   └── image_effect.py
+│
+├── utils/
+│   ├── _init_.py
+│   ├── constants.py
+│   ├── helpers.py
+│   └── status_messages.py
+│
+├── requirements.txt
+└── README.md
