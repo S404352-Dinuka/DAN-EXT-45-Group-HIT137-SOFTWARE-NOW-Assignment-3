@@ -81,7 +81,7 @@ class SpotTheDifferenceApplication:
             self.on_image_area_resize
         )
         self.update_info_labels()
-        self.update_layout_status_text(StatusMessage.LOAD_IMAGE_TO_START)
+        self.update_layout_status_text(StatusMessage.LOAD_IMAGE_TO_START.value)
 
     def calculate_maximum_display_width(self):
         """
@@ -136,7 +136,7 @@ class SpotTheDifferenceApplication:
         )
 
         if img_file_path == "":
-            self.update_layout_status_text(StatusMessage.IMAGE_LOADING_CANCELLED)
+            self.update_layout_status_text(StatusMessage.IMAGE_LOADING_CANCELLED.value)
             return
 
         try:
@@ -155,7 +155,7 @@ class SpotTheDifferenceApplication:
                 img_file_path
             )
 
-            self.update_layout_status_text(StatusMessage.NEW_IMAGE_LOADED)
+            self.update_layout_status_text(StatusMessage.NEW_IMAGE_LOADED.value)
 
             self.refresh_images()
             self.update_info_labels()
@@ -165,7 +165,7 @@ class SpotTheDifferenceApplication:
                 DialogTitle.IMAGE_ERROR.value,
                 str(error)
             )
-            self.update_layout_status_text(StatusMessage.IMAGE_COULD_NOT_BE_LOADED)
+            self.update_layout_status_text(StatusMessage.IMAGE_COULD_NOT_BE_LOADED.value)
 
     def get_available_image_display_size(self):
         """
@@ -235,25 +235,25 @@ class SpotTheDifferenceApplication:
         :param event: The Tkinter mouse click event
         """
         if self.game_state_manager.modified_image is None:
-            self.update_layout_status_text(StatusMessage.PLEASE_LOAD_IMAGE_FIRST)
+            self.update_layout_status_text(StatusMessage.PLEASE_LOAD_IMAGE_FIRST.value)
             return
 
         try:
             original_x, original_y = self.get_original_click_coordinates(event)
 
             if original_x is None or original_y is None:
-                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
+                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE.value)
                 return
 
             image_height = self.game_state_manager.modified_image.shape[0]
             image_width = self.game_state_manager.modified_image.shape[1]
 
             if original_x < 0 or original_y < 0:
-                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
+                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE.value)
                 return
 
             if original_x >= image_width or original_y >= image_height:
-                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE)
+                self.update_layout_status_text(StatusMessage.CLICK_INSIDE_MODIFIED_IMAGE.value)
                 return
 
             result, message = self.game_state_manager.validate_click(original_x, original_y)
