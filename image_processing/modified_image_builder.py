@@ -23,7 +23,10 @@ from utils.constants import (
     CANDIDATE_GRID_ROWS,
     CANDIDATE_AREA_MIN_SCALE,
     CANDIDATE_AREA_MAX_SCALE,
-    MIN_REGION_DETAIL_SCORE
+    MIN_REGION_DETAIL_SCORE,
+    PLAIN_AREA_BRIGHTNESS_THRESHOLD,
+    PLAIN_AREA_VISIBILITY_CHANGE,
+    PLAIN_AREA_VISIBILITY_BLEND_WEIGHT,
 )
 
 class ModifiedImageBuilder:
@@ -75,20 +78,25 @@ class ModifiedImageBuilder:
         self.diff = []
 
         candidate_areas = self.create_candidate_areas(img_width, img_height)
+        random.shuffle(candidate_areas)
 
-        candidate_areas = [
-            area for area in candidate_areas
-            if self.has_enough_visual_detail(img, area)
+        all_effect_types = [
+            ImageEffectType.BLUR.value,
+            ImageEffectType.COLOUR_SHIFT.value,
+            ImageEffectType.BRIGHTNESS.value,
+            ImageEffectType.GREY_SHIFT.value,
+            ImageEffectType.PIXELATE.value,
+            ImageEffectType.CONTRAST.value
         ]
 
-        if len(candidate_areas) == 0:
-            candidate_areas = self.create_candidate_areas(img_width, img_height)
+        used_effect_types = set()
 
         blur_area = self.get_best_blur_area(img, candidate_areas)
 
         if blur_area is not None:
             blur_area.alteration_name = ImageEffectType.BLUR.value
             self.diff.append(blur_area)
+            used_effect_types.add(ImageEffectType.BLUR.value)
 
             candidate_areas = [
                 area for area in candidate_areas if area is not blur_area
@@ -102,21 +110,23 @@ class ModifiedImageBuilder:
             ImageEffectType.PIXELATE.value
         )
 
-        if pixelate_area is not None:
+        if pixelate_area is None:
+            pixelate_area = self.get_any_non_overlapping_area(candidate_areas)
+
+        if pixelate_area is not None and len(self.diff) < self.count_diff:
             pixelate_area.alteration_name = ImageEffectType.PIXELATE.value
             self.diff.append(pixelate_area)
+            used_effect_types.add(ImageEffectType.PIXELATE.value)
 
             candidate_areas = [
                 area for area in candidate_areas if area is not pixelate_area
             ]
-
             candidate_areas = self.remove_overlapping_candidate_areas(candidate_areas)
 
         remaining_effect_types = [
-            ImageEffectType.COLOUR_SHIFT.value,
-            ImageEffectType.BRIGHTNESS.value,
-            ImageEffectType.GREY_SHIFT.value,
-            ImageEffectType.CONTRAST.value
+            effect_type
+            for effect_type in all_effect_types
+            if effect_type not in used_effect_types
         ]
 
         random.shuffle(remaining_effect_types)
@@ -132,10 +142,40 @@ class ModifiedImageBuilder:
             )
 
             if selected_area is None:
+                selected_area = self.get_any_non_overlapping_area(candidate_areas)
+
+            if selected_area is None:
                 continue
 
             selected_area.alteration_name = effect_type
             self.diff.append(selected_area)
+            used_effect_types.add(effect_type)
+
+            candidate_areas = [
+                area for area in candidate_areas if area is not selected_area
+            ]
+            candidate_areas = self.remove_overlapping_candidate_areas(candidate_areas)
+
+        while len(self.diff) < self.count_diff:
+            selected_area = self.get_any_non_overlapping_area(candidate_areas)
+
+            if selected_area is None:
+                break
+
+            available_effect_types = [
+                effect_type
+                for effect_type in all_effect_types
+                if effect_type not in used_effect_types
+            ]
+
+            if len(available_effect_types) == 0:
+                available_effect_types = all_effect_types
+
+            selected_effect_type = random.choice(available_effect_types)
+
+            selected_area.alteration_name = selected_effect_type
+            self.diff.append(selected_area)
+            used_effect_types.add(selected_effect_type)
 
             candidate_areas = [
                 area for area in candidate_areas if area is not selected_area
@@ -152,6 +192,8 @@ class ModifiedImageBuilder:
         :return: image after all alterations have been applied
         """
         for area in self.diff:
+            is_plain_area = not self.has_enough_visual_detail(img, area)
+
             if area.alteration_name == ImageEffectType.BLUR.value:
                 img = self.blur_effect.apply(img, area)
 
@@ -169,6 +211,9 @@ class ModifiedImageBuilder:
 
             elif area.alteration_name == ImageEffectType.CONTRAST.value:
                 img = self.contrast_effect.apply(img, area)
+
+            if is_plain_area:
+                img = self.improve_plain_area_visibility(img, area)
         return img
 
     def get_alterations(self):
@@ -417,3 +462,57 @@ class ModifiedImageBuilder:
         detail_score = grey_area.std()
 
         return detail_score >= MIN_REGION_DETAIL_SCORE
+
+    def get_any_non_overlapping_area(self, candidate_areas):
+        """
+        Returns any candidate area that does not overlap with already selected areas
+
+        :param candidate_areas: List of candidate difference areas
+        :return: A non-overlapping candidate area if available, otherwise None
+        """
+        shuffled_candidate_areas = candidate_areas.copy()
+        random.shuffle(shuffled_candidate_areas)
+
+        for candidate_area in shuffled_candidate_areas:
+            if not self.check_area_overlap(candidate_area):
+                return candidate_area
+
+        return None
+
+    def improve_plain_area_visibility(self, img, area):
+        """
+        Applies a small visibility adjustment to plain image areas.
+
+        :param img: Image that will be modified
+        :param area: Difference area with x, y, width, and height values
+        :return: Modified image
+        """
+        x = area.x
+        y = area.y
+        w = area.width
+        h = area.height
+
+        original_area = img[y:y + h, x:x + w].copy()
+
+        if original_area.size == 0:
+            return img
+
+        grey_area = cv2.cvtColor(original_area, cv2.COLOR_BGR2GRAY)
+        average_brightness = grey_area.mean()
+
+        if average_brightness > PLAIN_AREA_BRIGHTNESS_THRESHOLD:
+            adjusted_area = cv2.subtract(original_area, PLAIN_AREA_VISIBILITY_CHANGE)
+        else:
+            adjusted_area = cv2.add(original_area,PLAIN_AREA_VISIBILITY_CHANGE)
+
+        blended_area = cv2.addWeighted(
+            original_area,
+            1 - PLAIN_AREA_VISIBILITY_BLEND_WEIGHT,
+            adjusted_area,
+            PLAIN_AREA_VISIBILITY_BLEND_WEIGHT,
+            0
+        )
+
+        img[y:y + h, x:x + w] = blended_area
+
+        return img
