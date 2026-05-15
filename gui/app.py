@@ -27,7 +27,8 @@ from utils.constants import (
     SCREEN_WIDTH_RESERVED_SPACE,
     WINDOW_MIN_HEIGHT,
     WINDOW_MIN_WIDTH,
-
+    WINDOW_WIDTH,
+    WINDOW_HEIGHT,
 )
 from utils.status_messages import (
     DialogTitle,
@@ -52,6 +53,7 @@ class SpotTheDifferenceApplication:
         """
         self.root = root
         self.root.title(APP_TITLE)
+        self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         self.image_loader = ImageLoader()
         self.modified_image_builder = ModifiedImageBuilder()
